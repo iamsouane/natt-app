@@ -17,15 +17,15 @@ return new class extends Migration
                 [
                     'JOURNALIERE',
                     'HEBDOMADAIRE',
-                    'MENSUEL'
+                    'MENSUELLE'
                 ]);
             $table->string('libelle');
-            $table->date('dateDebut');
-            $table->date('dateFin');
+            $table->date('date_debut');
+            $table->date('date_fin');
             $table->text('description');
             $table->integer('montant_total');
             $table->integer('montant_de_base');
-            $table->integer('nbreParticipant');
+            $table->integer('nbre_participant');
             $table->timestamps();
         });
     }
