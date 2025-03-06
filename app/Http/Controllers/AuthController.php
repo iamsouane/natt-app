@@ -24,4 +24,13 @@ class AuthController extends Controller
 
         return back()->with('error', "Email et/ou mot de passe incorrect");
     }
+
+    // Gérer la déconnexion
+    public function logout(Request $request)
+    {
+        Auth::logout(); // Déconnecter l'utilisateur
+        $request->session()->invalidate(); // Invalider la session
+        $request->session()->regenerateToken(); // Régénérer le jeton CSRF
+        return redirect('/'); // Rediriger vers la page d'accueil
+    }
 }

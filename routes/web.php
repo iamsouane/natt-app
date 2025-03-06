@@ -16,12 +16,16 @@ use App\Http\Controllers\AuthController;
 |
 */
 
+// Page d'accueil
 Route::get('/', [InscriptionController::class, 'home'])->name('home');
 
-// Affichage formulaire d'inscription et validation
+// Inscription
 Route::get('register.html', [InscriptionController::class, 'index'])->name('inscription.index');
 Route::post('validate-register', [InscriptionController::class, 'register'])->name('inscription.register');
 
-//
+// Connexion
 Route::get('login.html', [AuthController::class, 'create'])->name('auth.create');
 Route::post('connexion', [AuthController::class, 'auth'])->name('auth.store');
+
+// Déconnexion
+Route::post('logout', [AuthController::class, 'logout'])->name('logout');
