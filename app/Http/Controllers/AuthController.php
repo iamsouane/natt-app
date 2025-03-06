@@ -3,26 +3,40 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    //
-    public function create() {
+    // Afficher le formulaire de connexion
+    public function create()
+    {
         return view('pages.auth.auth');
     }
 
-    public function auth(Request $request) {
-        $auth = $request->validate([
+    // Gérer la connexion
+    public function auth(Request $request)
+    {
+        $credentials = $request->validate([
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
-        if(Auth::attempt($auth)) {
+        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->route('home');
+
+            // Rediriger en fonction du profil de l'utilisateur
+            if (auth()->user()->profil === 'SUPER_ADMIN') {
+                return redirect()->route('tontines.index'); // Redirection pour SUPER_ADMIN
+            } elseif (auth()->user()->profil === 'GERANT') {
+                return redirect()->route('tontines.index'); // Redirection pour GERANT
+            } else {
+                return redirect()->route('home'); // Redirection par défaut
+            }
         }
 
-        return back()->with('error', "Email et/ou mot de passe incorrect");
+        return back()->withErrors([
+            'email' => 'Les identifiants fournis ne correspondent pas à nos enregistrements.',
+        ]);
     }
 
     // Gérer la déconnexion

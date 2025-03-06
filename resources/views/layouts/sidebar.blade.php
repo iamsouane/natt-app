@@ -22,6 +22,35 @@
     <!-- Divider -->
     <hr class="sidebar-divider">
 
+    <!-- Affichage conditionnel pour SUPER_ADMIN et GERANT -->
+    @auth
+        @if (auth()->user()->profil === 'SUPER_ADMIN' || auth()->user()->profil === 'GERANT')
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Gestion
+            </div>
+
+            <!-- Nav Item - Tontines -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('tontines.index') }}">
+                    <i class="fas fa-fw fa-coins"></i>
+                    <span>Tontines</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Tirages -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('tirages.index') }}">
+                    <i class="fas fa-fw fa-gift"></i>
+                    <span>Tirages</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+        @endif
+    @endauth
+
     <!-- Heading -->
     <div class="sidebar-heading">
         Authentification
@@ -42,6 +71,23 @@
             <span>Inscription</span>
         </a>
     </li>
+
+    <!-- Déconnexion -->
+    @auth
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <!-- Nav Item - Déconnexion -->
+        <li class="nav-item">
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="nav-link btn btn-link" style="cursor: pointer;">
+                    <i class="fas fa-fw fa-sign-out-alt"></i>
+                    <span>Déconnexion</span>
+                </button>
+            </form>
+        </li>
+    @endauth
 
     <!-- Divider -->
     <hr class="sidebar-divider d-none d-md-block">
