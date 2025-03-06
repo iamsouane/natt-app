@@ -12,8 +12,8 @@ class Cotisation extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'idUser',
-        'idTontine',
+        'id_user',
+        'id_tontine',
         'montant',
         'moyen_paiement'
     ];

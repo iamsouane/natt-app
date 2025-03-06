@@ -13,10 +13,10 @@ class Participant extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'idUser',
-        'dateNaissance',
+        'id_user',
+        'date_naissance',
         'cni',
         'adresse',
-        'imageCni'
+        'image_cni'
     ];
 }

@@ -12,7 +12,7 @@ class Image extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'idUser',
-        'nomImage'
+        'id_user',
+        'nom_image'
     ];
 }

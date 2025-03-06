@@ -14,11 +14,11 @@ class Tontine extends Model
     protected $fillable = [
         'frequence',
         'libelle',
-        'dateDebut',
-        'dateFin',
+        'date_debut',
+        'date_fin',
         'description',
         'montant_total',
         'montant_de_base',
-        'nbreParticipant',
+        'nbre_participant',
     ];
 }
