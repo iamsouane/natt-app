@@ -6,15 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class Cotisation extends Model
 {
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'id_user',
         'id_tontine',
         'montant',
         'moyen_paiement'
     ];
+
+    // Relation avec l'utilisateur
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'id_user');
+    }
+
+    // Relation avec la tontine
+    public function tontine()
+    {
+        return $this->belongsTo(Tontine::class, 'id_tontine');
+    }
 }

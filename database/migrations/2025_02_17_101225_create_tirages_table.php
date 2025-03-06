@@ -12,14 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tirages', function (Blueprint $table) {
-            //$table->id();
+            $table->id(); // Clé primaire auto-incrémentée
             $table->unsignedBigInteger('id_user');
             $table->unsignedBigInteger('id_tontine');
-            $table->primary(['id_user', 'id_tontine']);
+            $table->date('date_tirage'); // Date du tirage
             $table->timestamps();
-
-            $table->foreign('id_user')->references('id')->on('users');
-            $table->foreign('id_tontine')->references('id')->on('tontines');
+        
+            // Clés étrangères
+            $table->foreign('id_user')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('id_tontine')->references('id')->on('tontines')->onDelete('cascade');
+        
+            // Contrainte unique pour garantir qu'un utilisateur ne gagne qu'une fois par tontine
+            $table->unique(['id_user', 'id_tontine']);
         });
     }
 

@@ -13,14 +13,15 @@ return new class extends Migration
     {
         Schema::create('participants', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('id_user');
+            $table->unsignedBigInteger('id_user')->unique(); // Un utilisateur ne peut avoir qu'un seul profil participant
             $table->date('date_naissance');
             $table->string('cni')->unique();
             $table->string('adresse');
             $table->string('image_cni')->nullable();
             $table->timestamps();
-
-            $table->foreign('id_user')->references('id')->on('users');
+        
+            // Clé étrangère
+            $table->foreign('id_user')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

@@ -7,11 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Participant extends Model
 {
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    use HasFactory;
+
     protected $fillable = [
         'id_user',
         'date_naissance',
@@ -19,4 +16,10 @@ class Participant extends Model
         'adresse',
         'image_cni'
     ];
+
+    // Relation avec l'utilisateur
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'id_user');
+    }
 }

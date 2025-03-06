@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('id_tontine');
             $table->string('nom_image');
+            $table->string('chemin_image'); // Ajout d'une colonne pour le chemin de l'image
             $table->timestamps();
 
             $table->foreign('id_tontine')->references('id')->on('tontines');

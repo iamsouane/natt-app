@@ -6,13 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class Tirage extends Model
 {
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'id_user',
         'id_tontine'
     ];
+
+    // Relation avec l'utilisateur
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'id_user');
+    }
+
+    // Relation avec la tontine
+    public function tontine()
+    {
+        return $this->belongsTo(Tontine::class, 'id_tontine');
+    }
 }
