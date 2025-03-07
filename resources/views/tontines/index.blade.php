@@ -8,9 +8,17 @@
             <a href="{{ route('tontines.create') }}" class="btn btn-primary mb-3">Créer une Tontine</a>
         @endcan
 
+        <!-- Affichage du message de succès -->
         @if (session('success'))
             <div class="alert alert-success">
                 {{ session('success') }}
+            </div>
+        @endif
+
+        <!-- Affichage du message d'erreur -->
+        @if (session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
             </div>
         @endif
 

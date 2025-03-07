@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Tontine;
-
+use App\Models\Cotisation;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CotisationController extends Controller
 {
@@ -24,6 +25,15 @@ class CotisationController extends Controller
     // Afficher le formulaire de cotisation
     public function create(Tontine $tontine)
     {
+        // Vérifier si le nombre de participants a atteint la limite
+        $currentParticipants = Cotisation::where('id_tontine', $tontine->id)->count();
+
+        if ($currentParticipants >= $tontine->nbre_participant) {
+            // Rediriger avec un message d'erreur
+            return redirect()->route('participant.tontines.index')->with('error', 'Le nombre maximal de participants a été atteint pour cette tontine.');
+        }
+
+        // Si le nombre de participants n'est pas atteint, afficher le formulaire de participation
         return view('participant.cotisations.create', compact('tontine'));
     }
 
@@ -41,7 +51,6 @@ class CotisationController extends Controller
             'id_tontine' => $tontine->id,
             'montant' => $request->montant,
             'moyen_paiement' => $request->moyen_paiement,
-            'statut_paiement' => 'PAYE', // Ou 'NON_PAYE' selon votre logique
         ]);
 
         return redirect()->route('participant.tontines.index')->with('success', 'Cotisation enregistrée avec succès.');
