@@ -11,32 +11,42 @@
                     <p class="lead">Bonjour, {{ auth()->user()->prenom }} {{ auth()->user()->nom }} !</p>
 
                     <!-- Afficher les tontines pour les participants -->
-                    @if(auth()->user()->profil === 'PARTICIPANT' && session('tontines'))
-                        <h3>Choisissez une Tontine pour cotiser</h3>
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Libellé</th>
-                                    <th>Fréquence</th>
-                                    <th>Date de début</th>
-                                    <th>Date de fin</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (session('tontines') as $tontine)
+                    @if (auth()->user()->profil === 'PARTICIPANT')
+                        @php
+                            $tontines =
+                                session('tontines') ?? \App\Models\Tontine::where('date_fin', '>', now())->get();
+                        @endphp
+
+                        @if ($tontines->count() > 0)
+                            <h3>Choisissez une Tontine pour cotiser</h3>
+                            <table class="table table-bordered">
+                                <thead>
                                     <tr>
-                                        <td>{{ $tontine->libelle }}</td>
-                                        <td>{{ $tontine->frequence }}</td>
-                                        <td>{{ $tontine->date_debut }}</td>
-                                        <td>{{ $tontine->date_fin }}</td>
-                                        <td>
-                                            <a href="{{ route('participant.tontines.show', $tontine) }}" class="btn btn-info btn-sm">Choisir</a>
-                                        </td>
+                                        <th>Libellé</th>
+                                        <th>Fréquence</th>
+                                        <th>Date de début</th>
+                                        <th>Date de fin</th>
+                                        <th>Actions</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach ($tontines as $tontine)
+                                        <tr>
+                                            <td>{{ $tontine->libelle }}</td>
+                                            <td>{{ $tontine->frequence }}</td>
+                                            <td>{{ $tontine->date_debut }}</td>
+                                            <td>{{ $tontine->date_fin }}</td>
+                                            <td>
+                                                <a href="{{ route('participant.tontines.show', $tontine) }}"
+                                                    class="btn btn-info btn-sm">Choisir</a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @else
+                            <p>Aucune tontine disponible pour le moment.</p>
+                        @endif
                     @endif
 
                     <!-- Liens pour les utilisateurs connectés -->
@@ -45,7 +55,8 @@
                             <a href="{{ route('tontines.index') }}" class="btn btn-primary btn-lg mr-3">Gérer les Tontines</a>
                             <a href="{{ route('tirages.index') }}" class="btn btn-primary btn-lg mr-3">Gérer les Tirages</a>
                         @endif
-                        <a href="{{ route('logout') }}" class="btn btn-danger btn-lg" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Déconnexion</a>
+                        <a href="{{ route('logout') }}" class="btn btn-danger btn-lg"
+                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Déconnexion</a>
                         <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                             @csrf
                         </form>
