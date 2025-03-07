@@ -3,7 +3,10 @@
 @section('content')
     <div class="container">
         <h1>Liste des Tontines</h1>
-        <a href="{{ route('tontines.create') }}" class="btn btn-primary mb-3">Créer une Tontine</a>
+
+        @can('create', App\Models\Tontine::class) <!-- Vérification si l'utilisateur peut créer une tontine -->
+            <a href="{{ route('tontines.create') }}" class="btn btn-primary mb-3">Créer une Tontine</a>
+        @endcan
 
         @if (session('success'))
             <div class="alert alert-success">
@@ -32,15 +35,19 @@
                             <!-- Bouton "Voir" -->
                             <a href="{{ route('tontines.show', $tontine) }}" class="btn btn-info btn-sm">Voir</a>
 
-                            <!-- Bouton "Modifier" -->
-                            <a href="{{ route('tontines.edit', $tontine) }}" class="btn btn-warning btn-sm">Modifier</a>
+                            @can('update', $tontine) <!-- Vérification si l'utilisateur peut modifier cette tontine -->
+                                <!-- Bouton "Modifier" -->
+                                <a href="{{ route('tontines.edit', $tontine) }}" class="btn btn-warning btn-sm">Modifier</a>
+                            @endcan
 
-                            <!-- Bouton "Supprimer" -->
-                            <form action="{{ route('tontines.destroy', $tontine) }}" method="POST" style="display:inline;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette tontine ?')">Supprimer</button>
-                            </form>
+                            @can('delete', $tontine) <!-- Vérification si l'utilisateur peut supprimer cette tontine -->
+                                <!-- Bouton "Supprimer" -->
+                                <form action="{{ route('tontines.destroy', $tontine) }}" method="POST" style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette tontine ?')">Supprimer</button>
+                                </form>
+                            @endcan
                         </td>
                     </tr>
                 @endforeach

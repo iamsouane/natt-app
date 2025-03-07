@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Tontine;
 
 class AuthController extends Controller
 {
@@ -24,14 +25,16 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            // Rediriger en fonction du profil de l'utilisateur
-            if (auth()->user()->profil === 'SUPER_ADMIN') {
-                return redirect()->route('tontines.index'); // Redirection pour SUPER_ADMIN
-            } elseif (auth()->user()->profil === 'GERANT') {
-                return redirect()->route('tontines.index'); // Redirection pour GERANT
-            } else {
-                return redirect()->route('home'); // Redirection par défaut
-            }
+            // Récupérer les tontines actives
+            $tontines = Tontine::where('date_fin', '>', now())->get();
+
+        // Rediriger en fonction du profil de l'utilisateur
+        if (auth()->user()->profil === 'SUPER_ADMIN' || auth()->user()->profil === 'GERANT') {
+            return redirect()->route('tontines.index'); // Redirection pour SUPER_ADMIN ou GERANT
+        } else {
+            // Passer les tontines à la vue 'welcome' pour les participants
+            return redirect()->route('home')->with('tontines', $tontines); // Redirection avec les tontines
+        }
         }
 
         return back()->withErrors([

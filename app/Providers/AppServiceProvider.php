@@ -3,6 +3,8 @@
 namespace App\Providers;
 use Illuminate\Database\Schema\Builder;
 use Illuminate\Support\ServiceProvider;
+use App\Models\Tontine;
+use App\Policies\TontinePolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,6 +15,10 @@ class AppServiceProvider extends ServiceProvider
     {
         //
     }
+
+    protected $policies = [
+        Tontine::class => TontinePolicy::class,
+    ];
 
     /**
      * Bootstrap any application services.

@@ -13,7 +13,7 @@ class CheckRole
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, $role = 'SUPER_ADMIN,GERANT'): Response
+    public function handle(Request $request, Closure $next, $role = 'SUPER_ADMIN,GERANT,PARTICIPANT'): Response
     {
         // Vérifier si l'utilisateur est connecté et a le bon rôle
         if (auth()->check() && in_array(auth()->user()->profil, explode(',', $role))) {
