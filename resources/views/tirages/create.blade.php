@@ -2,30 +2,36 @@
 
 @section('content')
     <div class="container">
-        <h1>Créer un Tirage</h1>
+        <h1 class="mb-4">Créer un Tirage pour la Tontine : {{ $tontine->libelle }}</h1>
+
+        @if(session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        <p>Le tirage sera effectué parmi les participants qui n'ont pas encore gagné dans cette tontine. Un seul gagnant sera choisi aléatoirement.</p>
+
         <form action="{{ route('tirages.store') }}" method="POST">
             @csrf
+            <input type="hidden" name="id_tontine" value="{{ $tontine->id }}">
+
             <div class="form-group">
-                <label for="tontine_id">Tontine</label>
-                <select name="tontine_id" id="tontine_id" class="form-control" required>
-                    @foreach ($tontines as $tontine)
-                        <option value="{{ $tontine->id }}">{{ $tontine->libelle }}</option>
+                <label for="id_user">Choisir un participant</label>
+                <select name="id_user" id="id_user" class="form-control">
+                    @foreach($users as $user)
+                        <option value="{{ $user->id }}">{{ $user->name }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="form-group">
-                <label for="user_id">Gagnant</label>
-                <select name="user_id" id="user_id" class="form-control" required>
-                    @foreach ($users as $user)
-                        <option value="{{ $user->id }}">{{ $user->prenom }} {{ $user->nom }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="date_tirage">Date du tirage</label>
-                <input type="date" name="date_tirage" id="date_tirage" class="form-control" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Créer</button>
+
+            <button type="submit" class="btn btn-success mt-4">Effectuer le Tirage</button>
         </form>
     </div>
 @endsection

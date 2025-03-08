@@ -83,10 +83,10 @@
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
                                         {{-- Champ date de naissance --}}
-                                        <input type="date" name="dateNaissance" class="form-control form-control-user"
-                                            id="dateNaissance" placeholder="Votre date de naissance" value="{{old('dateNaissance')}}">
+                                        <input type="date" name="date_naissance" class="form-control form-control-user"
+                                            id="date_naissance" placeholder="Votre date de naissance" value="{{old('date_naissance')}}">
 
-                                        @error('dateNaissance')
+                                        @error('date_naissance')
                                             <small style="color: red">{{ $message }}</small>
                                         @enderror
                                     </div>
@@ -124,8 +124,8 @@
 
                                 <div class="form-group">
                                     {{-- Champ cni --}}
-                                    <input type="text" name="cni "class="form-control form-control-user" id="cni"
-                                        placeholder="Votre numero de carte d'identite nationale" value="{{old('cni')}}">
+                                    <input type="text" name="cni" class="form-control form-control-user" id="cni"
+    placeholder="Votre numero de carte d'identite nationale" value="{{old('cni')}}">
 
                                         @error('cni')
                                             <small style="color: red">{{ $message }}</small>

@@ -20,39 +20,39 @@ class InscriptionController extends Controller
             'nom' => 'required|min:2',
             'email' => 'required|email|unique:users',
             'telephone' => 'required|max:9|unique:users',
-            'dateNaissance' => 'required|date|before_or_equal:' . now()->subYears(18)->toDateString(),
+            'date_naissance' => 'required|date|before_or_equal:' . now()->subYears(18)->toDateString(),
             'adresse' => 'required|string',
             'password' => 'required|min:6|confirmed',
-            'cni' => 'min:5|max:5'
+            'cni' => 'nullable|min:5|max:5|unique:participants' // Champ optionnel
         ]);
-
+    
         // Enregistrement dans la base de donnees
         $user = User::create([
             'prenom' => $request->prenom,
             'nom' => $request->nom,
-            'email' => $request->email,
             'telephone' => $request->telephone,
+            'email' => $request->email,
             'password' => bcrypt($request->password),
-            'cni' => $request->cni
+            //'cni' => $request->cni // Ajoutez cni à la table users si nécessaire
         ]);
-
-        if($user) {
+    
+        if ($user) {
             $participant = new Participant();
-            $participant->idUser = $user->id;
-            $participant->dateNaissance = $request->dateNaissance;
-            $participant->cni = $request->cni;
+            $participant->id_user = $user->id;
+            $participant->date_naissance = $request->date_naissance;
+            $participant->cni = $request->cni ?? 'N/A'; // Valeur par défaut si cni est null
             $participant->adresse = $request->adresse;
             $participant->save();
-
+    
             // Authentification
             $request->session()->regenerate();
-
+    
             // Redirection vers la page d'accueil
             return redirect()->route('home');
         }
-
+    
         return back()->with('error', "Une erreur s'est produite lors de l'enregistrement");
-    }    
+    }   
 
     public function home() {
         return view('welcome');

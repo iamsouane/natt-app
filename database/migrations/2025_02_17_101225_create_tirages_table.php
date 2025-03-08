@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id(); // Clé primaire auto-incrémentée
             $table->unsignedBigInteger('id_user');
             $table->unsignedBigInteger('id_tontine');
-            $table->date('date_tirage'); // Date du tirage
+            $table->timestamp('date_tirage')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamps();
         
             // Clés étrangères

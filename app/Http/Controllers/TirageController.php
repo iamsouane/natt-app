@@ -4,44 +4,69 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Tirage;
+use App\Models\Tontine;
+use App\Models\User;
 
 class TirageController extends Controller
 {
-    // Afficher la liste des tirages
+    // Afficher la liste des tontines disponibles pour le tirage
     public function index()
-    {
-        $tirages = Tirage::with(['user', 'tontine'])->get();
-        return view('tirages.index', compact('tirages'));
-    }
+{
+    // Récupérer toutes les tontines disponibles
+    $tontines = Tontine::all();
 
-    // Afficher le formulaire de création d'un tirage
-    public function create()
+    // Récupérer tous les tirages avec les informations de la tontine et du gagnant
+    $tirages = Tirage::with(['tontine', 'user'])->get();
+
+    // Passer les tontines et les tirages à la vue
+    return view('tirages.index', compact('tontines', 'tirages'));
+}
+
+
+    // Afficher le formulaire de création d'un tirage pour une tontine spécifique
+    public function create(Request $request)
     {
-        $tontines = Tontine::all();
+        // Récupérer la tontine sélectionnée
+        $tontine = Tontine::findOrFail($request->get('tontine_id'));
+
+        // Récupérer les utilisateurs ayant le profil "PARTICIPANT"
         $users = User::where('profil', 'PARTICIPANT')->get();
-        return view('tirages.create', compact('tontines', 'users'));
+
+        return view('tirages.create', compact('tontine', 'users'));
     }
 
     // Enregistrer un nouveau tirage
     public function store(Request $request)
-    {
-        $request->validate([
-            'id_user' => 'required|exists:users,id',
-            'id_tontine' => 'required|exists:tontines,id',
-        ]);
+{
+    // Récupérer la tontine concernée
+    $tontine = Tontine::findOrFail($request->id_tontine);
 
-        // Vérifier si l'utilisateur a déjà gagné dans cette tontine
-        $existingTirage = Tirage::where('id_user', $request->id_user)
-            ->where('id_tontine', $request->id_tontine)
-            ->exists();
+    // Récupérer les participants qui n'ont pas encore gagné dans cette tontine
+    $participantsEligibles = User::where('profil', 'PARTICIPANT')
+        ->whereDoesntHave('tirages', function ($query) use ($tontine) {
+            $query->where('id_tontine', $tontine->id);
+        })
+        ->get();
 
-        if ($existingTirage) {
-            return redirect()->back()->withErrors(['error' => 'Cet utilisateur a déjà gagné dans cette tontine.']);
-        }
-
-        Tirage::create($request->all());
-        return redirect()->route('tirages.index')->with('success', 'Tirage enregistré avec succès.');
+    // Vérifier s'il y a des participants éligibles
+    if ($participantsEligibles->isEmpty()) {
+        return redirect()->back()->with('error', 'Tous les participants ont déjà gagné un tirage.');
     }
+
+    // Sélectionner un gagnant au hasard
+    $gagnant = $participantsEligibles->random();
+
+    // Créer et enregistrer le tirage avec le gagnant
+    $tirage = Tirage::create([
+        'id_user' => $gagnant->id,
+        'id_tontine' => $tontine->id,
+        'date_tirage' => now(),
+    ]);
+
+    // Rediriger avec le nom du gagnant affiché
+    return redirect()->route('tirages.index')->with('success', "Le tirage a été effectué. Le gagnant est : {$gagnant->name}");
+}
+
 
     // Afficher les détails d'un tirage
     public function show(Tirage $tirage)
@@ -49,7 +74,7 @@ class TirageController extends Controller
         return view('tirages.show', compact('tirage'));
     }
 
-    // Afficher le formulaire de modification d'un tirage
+    // Modifier un tirage existant
     public function edit(Tirage $tirage)
     {
         $tontines = Tontine::all();
