@@ -47,8 +47,8 @@ class InscriptionController extends Controller
             // Authentification
             $request->session()->regenerate();
     
-            // Redirection vers la page d'accueil
-            return redirect()->route('home');
+            // Redirection vers la page de connexion
+            return redirect()->route('auth.create');
         }
     
         return back()->with('error', "Une erreur s'est produite lors de l'enregistrement");

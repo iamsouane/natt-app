@@ -49,6 +49,25 @@
             <!-- Divider -->
             <hr class="sidebar-divider">
         @endif
+
+        <!-- Affichage conditionnel pour PARTICIPANT -->
+        @if (auth()->user()->profil === 'PARTICIPANT')
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Fonctionnalités du Participant
+            </div>
+
+            <!-- Nav Item - Voir Tontines -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('participant.tontines.index') }}">
+                    <i class="fas fa-fw fa-eye"></i>
+                    <span>Voir Tontines</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+        @endif
     @endauth
 
     <!-- Heading -->
