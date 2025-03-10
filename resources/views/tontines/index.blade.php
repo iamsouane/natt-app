@@ -37,8 +37,8 @@
                     <tr>
                         <td>{{ $tontine->libelle }}</td>
                         <td>{{ $tontine->frequence }}</td>
-                        <td>{{ $tontine->date_debut }}</td>
-                        <td>{{ $tontine->date_fin }}</td>
+                        <td>{{ \Carbon\Carbon::parse($tontine->date_debut)->format('m/d/Y') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($tontine->date_fin)->format('m/d/Y') }}</td>
                         <td>
                             <!-- Bouton "Voir" -->
                             <a href="{{ route('tontines.show', $tontine) }}" class="btn btn-info btn-sm">Voir</a>

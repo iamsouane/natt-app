@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Tontine extends Model
 {
@@ -15,23 +16,57 @@ class Tontine extends Model
         'montant_total',
         'montant_de_base',
         'nbre_participant',
+        'nbre_cotisation',
     ];
 
-    // Relation avec les cotisations
-    public function cotisations()
+    protected static function boot()
     {
-        return $this->hasMany(Cotisation::class, 'id_tontine');
+        parent::boot();
+
+        static::creating(function ($tontine) {
+            $tontine->calculerNbreCotisation();
+        });
+
+        static::updating(function ($tontine) {
+            $tontine->calculerNbreCotisation();
+        });
     }
 
-    // Relation avec les tirages
-    public function tirages()
+    public function calculerNbreCotisation()
     {
-        return $this->hasMany(Tirage::class, 'id_tontine');
-    }
+        $dateDebut = Carbon::parse($this->date_debut);
+        $dateFin = Carbon::parse($this->date_fin);
+        $duree = $dateDebut->diffInDays($dateFin); // Durée en jours
 
-    // Relation avec les images
-    public function images()
-    {
-        return $this->hasMany(Image::class, 'id_tontine');
+        // Vérifier que la durée est positive
+        if ($duree <= 0) {
+            throw new \Exception("La durée de la tontine doit être supérieure à zéro.");
+        }
+
+        // Vérification de la fréquence et calcul du nombre de cotisations en fonction de celle-ci
+        switch ($this->frequence) {
+            case 'JOURNALIERE':
+                // Une cotisation par jour
+                $this->nbre_cotisation = $duree;
+                break;
+
+            case 'HEBDOMADAIRE':
+                // Une cotisation par semaine
+                $this->nbre_cotisation = ceil($duree / 7); // Arrondi à l'entier supérieur
+                break;
+
+            case 'MENSUELLE':
+                // Une cotisation par mois
+                $this->nbre_cotisation = ceil($duree / 30); // Environ 30 jours par mois
+                break;
+
+            default:
+                throw new \Exception("Fréquence invalide. Elle doit être JOURNALIERE, HEBDOMADAIRE ou MENSUELLE.");
+        }
+
+        // Optionnel : Valider le montant total, peut-être selon votre logique de business
+        if ($this->montant_total <= 0) {
+            throw new \Exception("Le montant total doit être supérieur à zéro.");
+        }
     }
 }

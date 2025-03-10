@@ -26,6 +26,7 @@ return new class extends Migration
             $table->integer('montant_total');
             $table->integer('montant_de_base');
             $table->integer('nbre_participant');
+            $table->integer('nbre_cotisation');
             $table->timestamps();
         });
     }
