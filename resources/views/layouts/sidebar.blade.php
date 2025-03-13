@@ -59,9 +59,17 @@
 
             <!-- Nav Item - Voir Tontines -->
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('participant.tontines.index') }}">
+                <a class="nav-link" href="{{ route('tontines.index') }}">
                     <i class="fas fa-fw fa-eye"></i>
                     <span>Voir Tontines</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Voir Cotisations -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('participant.cotisations.index') }}">
+                    <i class="fas fa-fw fa-eye"></i>
+                    <span>Mes cotisations</span>
                 </a>
             </li>
 

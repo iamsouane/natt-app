@@ -12,19 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('cotisations', function (Blueprint $table) {
-            $table->id(); // Ajout d'un ID auto-incrémenté
+            $table->id();
             $table->unsignedBigInteger('id_user');
             $table->unsignedBigInteger('id_tontine');
             $table->integer('montant');
             $table->enum('moyen_paiement', ['ESPECES', 'WAVE', 'OM']);
+            $table->date('date_cotisation');
             $table->timestamps();
-        
-            // Clés étrangères
+
             $table->foreign('id_user')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('id_tontine')->references('id')->on('tontines')->onDelete('cascade');
-        
-            // Clé unique composée
-            $table->unique(['id_user', 'id_tontine']);
         });
     }
 

@@ -10,43 +10,12 @@
                     <!-- Message pour les utilisateurs connectés -->
                     <p class="lead">Bonjour, {{ auth()->user()->prenom }} {{ auth()->user()->nom }} !</p>
 
-                    <!-- Afficher les tontines pour les participants -->
+                    <!-- Afficher un lien vers la page cotisations pour les participants -->
                     @if (auth()->user()->profil === 'PARTICIPANT')
-                        @php
-                            $tontines =
-                                session('tontines') ?? \App\Models\Tontine::where('date_fin', '>', now())->get();
-                        @endphp
+                        <h3>Choisissez une Tontine pour cotiser</h3>
+                        <p>Vous pouvez voir toutes les tontines disponibles et cotiser en cliquant sur le lien ci-dessous :</p>
 
-                        @if ($tontines->count() > 0)
-                            <h3>Choisissez une Tontine pour cotiser</h3>
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Libellé</th>
-                                        <th>Fréquence</th>
-                                        <th>Date de début</th>
-                                        <th>Date de fin</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($tontines as $tontine)
-                                        <tr>
-                                            <td>{{ $tontine->libelle }}</td>
-                                            <td>{{ $tontine->frequence }}</td>
-                                            <td>{{ $tontine->date_debut }}</td>
-                                            <td>{{ $tontine->date_fin }}</td>
-                                            <td>
-                                                <a href="{{ route('participant.tontines.show', $tontine) }}"
-                                                    class="btn btn-info btn-sm">Choisir</a>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        @else
-                            <p>Aucune tontine disponible pour le moment.</p>
-                        @endif
+                        <a href="{{ route('participant.cotisations.index') }}" class="btn btn-primary btn-lg">Voir les Tontines disponibles</a>
                     @endif
 
                     <!-- Liens pour les utilisateurs connectés -->

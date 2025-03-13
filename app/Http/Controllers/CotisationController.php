@@ -2,57 +2,82 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Tontine;
-use App\Models\Cotisation;
 use Illuminate\Http\Request;
+use App\Models\Cotisation;
+use App\Models\Tontine;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class CotisationController extends Controller
 {
-    // Afficher la liste des tontines disponibles
+    /**
+     * Afficher la liste des tontines disponibles pour un participant.
+     */
     public function index()
     {
-        $tontines = Tontine::where('date_fin', '>', now())->get(); // Tontines actives
-        return view('participant.tontines.index', compact('tontines'));
+        // Récupérer toutes les tontines disponibles
+        $tontines = Tontine::all();
+        return view('participant.cotisations.index', compact('tontines'));
     }
 
-    // Afficher les détails d'une tontine
-    public function show(Tontine $tontine)
-    {
-        return view('participant.tontines.show', compact('tontine'));
-    }
-
-    // Afficher le formulaire de cotisation
+    /**
+     * Afficher le formulaire de cotisation pour une tontine spécifique.
+     */
     public function create(Tontine $tontine)
     {
-        // Vérifier si le nombre de participants a atteint la limite
-        $currentParticipants = Cotisation::where('id_tontine', $tontine->id)->count();
+        // Vérifier le nombre de cotisations déjà effectuées par l'utilisateur
+        $nbreCotisations = Cotisation::where('id_user', Auth::id())
+            ->where('id_tontine', $tontine->id)
+            ->count();
 
-        if ($currentParticipants >= $tontine->nbre_participant) {
-            // Rediriger avec un message d'erreur
-            return redirect()->route('participant.tontines.index')->with('error', 'Le nombre maximal de participants a été atteint pour cette tontine.');
+        if ($nbreCotisations >= $tontine->nbre_cotisation) {
+            return redirect()->route('participant.cotisations.index')
+                ->with('error', "Vous avez atteint le nombre de cotisations maximum pour cette tontine.");
         }
 
-        // Si le nombre de participants n'est pas atteint, afficher le formulaire de participation
-        return view('participant.cotisations.create', compact('tontine'));
+        // Calcul du montant à cotiser par séance
+        $montant_partiel = ($tontine->nbre_cotisation > 0) 
+            ? $tontine->montant_de_base / $tontine->nbre_cotisation 
+            : 0;
+
+        return view('participant.cotisations.create', compact('tontine', 'montant_partiel'));
     }
 
-    // Enregistrer la cotisation
+    /**
+     * Enregistrer une nouvelle cotisation.
+     */
     public function store(Request $request, Tontine $tontine)
     {
-        $request->validate([
-            'montant' => 'required|numeric',
-            'moyen_paiement' => 'required|in:ESPECES,WAVE,OM',
-        ]);
+        // Vérifier si le participant a déjà atteint le nombre de cotisations
+        $nbreCotisations = Cotisation::where('id_user', Auth::id())
+            ->where('id_tontine', $tontine->id)
+            ->count();
 
-        // Enregistrer la cotisation
+        if ($nbreCotisations >= $tontine->nbre_cotisation) {
+            return redirect()->route('participant.cotisations.index')
+                ->with('error', "Vous avez atteint le nombre de cotisations maximum pour cette tontine.");
+        }
+
+        // Calcul automatique du montant de cotisation
+        $montant_partiel = ($tontine->nbre_cotisation > 0) 
+            ? $tontine->montant_de_base / $tontine->nbre_cotisation 
+            : 0;
+
+        // Vérification si le montant est valide
+        if ($montant_partiel <= 0) {
+            return redirect()->back()->with('error', "Erreur dans le calcul du montant.");
+        }
+
+        // Enregistrement de la cotisation
         Cotisation::create([
             'id_user' => Auth::id(),
             'id_tontine' => $tontine->id,
-            'montant' => $request->montant,
+            'montant' => $montant_partiel,
             'moyen_paiement' => $request->moyen_paiement,
+            'date_cotisation' => Carbon::now(),
         ]);
 
-        return redirect()->route('participant.tontines.index')->with('success', 'Cotisation enregistrée avec succès.');
+        return redirect()->route('participant.cotisations.index')
+            ->with('success', "Cotisation enregistrée avec succès !");
     }
 }

@@ -7,18 +7,6 @@ use App\Http\Controllers\TontineController;
 use App\Http\Controllers\TirageController;
 use App\Http\Controllers\CotisationController;
 
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
-
 // Page d'accueil
 Route::get('/', [InscriptionController::class, 'home'])->name('home');
 
@@ -36,13 +24,16 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 // Routes pour SUPER_ADMIN et GERANT
 Route::middleware(['auth', 'role:SUPER_ADMIN,GERANT'])->prefix('admin')->group(function () {
     Route::resource('tontines', TontineController::class);
-    Route::resource('tirages', TirageController::class);  // Ajout des routes pour les tirages
+    Route::resource('tirages', TirageController::class);
 });
 
 // Routes pour les participants
 Route::middleware(['auth', 'role:PARTICIPANT'])->prefix('participant')->group(function () {
-    Route::get('tontines', [TontineController::class, 'index'])->name('participant.tontines.index');
-    Route::get('tontines/{tontine}', [CotisationController::class, 'show'])->name('participant.tontines.show');
     Route::get('cotisations/{tontine}/create', [CotisationController::class, 'create'])->name('participant.cotisations.create');
     Route::post('cotisations/{tontine}', [CotisationController::class, 'store'])->name('participant.cotisations.store');
+    Route::get('cotisations', [CotisationController::class, 'index'])->name('participant.cotisations.index');
+    Route::get('/cotisations/{cotisation}', [CotisationController::class, 'show'])->name('participant.cotisations.show');
+
+    // Route pour envoyer les rappels de cotisation
+    Route::post('cotisations/rappels', [CotisationController::class, 'envoyerRappels'])->name('participant.cotisations.rappels');
 });
