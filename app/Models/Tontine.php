@@ -44,42 +44,41 @@ class Tontine extends Model
     }
 
     /**
-     * Calcule le nombre total de cotisations en fonction de la durée et de la fréquence
+     * Calcule le nombre total de cotisations en fonction de la durée et de la fréquence.
      */
     public function calculerNbreCotisation()
     {
         $dateDebut = Carbon::parse($this->date_debut);
         $dateFin = Carbon::parse($this->date_fin);
-        $duree = $dateDebut->diffInDays($dateFin); // Durée en jours
 
-        if ($duree <= 0) {
-            throw new \Exception("La durée de la tontine doit être supérieure à zéro.");
+        if ($dateDebut->greaterThanOrEqualTo($dateFin)) {
+            throw new \Exception("La date de fin doit être postérieure à la date de début.");
         }
+
+        $duree = $dateDebut->diffInDays($dateFin); // Durée en jours
 
         switch ($this->frequence) {
             case 'JOURNALIERE':
-                $this->nbre_cotisation = $duree;
+                $nbreCotisation = $duree;
                 break;
             case 'HEBDOMADAIRE':
-                $this->nbre_cotisation = ceil($duree / 7);
+                $nbreCotisation = ceil($duree / 7);
                 break;
             case 'MENSUELLE':
-                $this->nbre_cotisation = ceil($duree / 30);
+                $nbreCotisation = ceil($duree / 30);
                 break;
             default:
                 throw new \Exception("Fréquence invalide. Elle doit être JOURNALIERE, HEBDOMADAIRE ou MENSUELLE.");
         }
 
-        if ($this->montant_total <= 0) {
-            throw new \Exception("Le montant total doit être supérieur à zéro.");
-        }
+        $this->nbre_cotisation = max(0, $nbreCotisation); // Empêcher les valeurs négatives
     }
 
     /**
-     * Retourne le nombre de cotisations restantes
+     * Retourne le nombre de cotisations restantes.
      */
     public function cotisationsRestantes()
     {
-        return $this->nbre_cotisation - $this->cotisations()->count();
+        return max(0, $this->nbre_cotisation - $this->cotisations()->count());
     }
 }

@@ -18,7 +18,7 @@
                 <th>Nom</th>
                 <th>Montant de base</th>
                 <th>Nombre de cotisations max</th>
-                <th>Nombre de cotisations restantes</th> <!-- Nouvelle colonne -->
+                <th>Nombre de cotisations restantes</th> 
                 <th>Actions</th>
             </tr>
         </thead>
@@ -28,11 +28,21 @@
                 <td>{{ $tontine->libelle }}</td>
                 <td>{{ number_format($tontine->montant_de_base, 2) }} FCFA</td>
                 <td>{{ $tontine->nbre_cotisation }}</td>
-                <td>{{ $tontine->cotisationsRestantes() }}</td> <!-- Affichage des cotisations restantes -->
                 <td>
-                    <a href="{{ route('participant.cotisations.create', $tontine->id) }}" class="btn btn-primary">
-                        Cotiser
-                    </a>
+                    @if($tontine->cotisationsRestantes() == 0)
+                        <span class="badge badge-danger">Complète</span>
+                    @else
+                        {{ $tontine->cotisationsRestantes() }}
+                    @endif
+                </td>
+                <td>
+                    @if($tontine->cotisationsRestantes() > 0)
+                        <a href="{{ route('participant.cotisations.create', $tontine->id) }}" class="btn btn-primary">
+                            Cotiser
+                        </a>
+                    @else
+                        <button class="btn btn-secondary" disabled>Complet</button>
+                    @endif
                 </td>
             </tr>
             @endforeach
