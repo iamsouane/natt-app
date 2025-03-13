@@ -28,18 +28,18 @@ class AuthController extends Controller
             // Récupérer les tontines actives
             $tontines = Tontine::where('date_fin', '>', now())->get();
 
-        // Rediriger en fonction du profil de l'utilisateur
-        if (auth()->user()->profil === 'SUPER_ADMIN' || auth()->user()->profil === 'GERANT') {
-            return redirect()->route('tontines.index'); // Redirection pour SUPER_ADMIN ou GERANT
-        } else {
-            // Passer les tontines à la vue 'welcome' pour les participants
-            return redirect()->route('home')->with('tontines', $tontines); // Redirection avec les tontines
-        }
+            // Rediriger en fonction du profil de l'utilisateur
+            if (auth()->user()->profil === 'SUPER_ADMIN' || auth()->user()->profil === 'GERANT') {
+                return redirect()->route('tontines.index'); 
+            } else {
+                return redirect()->route('home')->with('tontines', $tontines);
+            }
         }
 
+        // Retourner un message d'erreur si les identifiants sont incorrects
         return back()->withErrors([
-            'email' => 'Les identifiants fournis ne correspondent pas à nos enregistrements.',
-        ]);
+            'login' => 'Les identifiants fournis sont incorrects. Veuillez réessayer.',
+        ])->withInput();
     }
 
     // Gérer la déconnexion
