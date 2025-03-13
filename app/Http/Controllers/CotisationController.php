@@ -11,32 +11,29 @@ use Carbon\Carbon;
 class CotisationController extends Controller
 {
     /**
-     * Afficher la liste des tontines disponibles pour un participant.
+     * Affiche la liste des tontines disponibles.
      */
     public function index()
     {
-        // Récupérer toutes les tontines disponibles
         $tontines = Tontine::all();
         return view('participant.cotisations.index', compact('tontines'));
     }
 
     /**
-     * Afficher le formulaire de cotisation pour une tontine spécifique.
+     * Affiche le formulaire de cotisation pour une tontine spécifique.
      */
     public function create(Tontine $tontine)
     {
-        // Vérifier le nombre de cotisations déjà effectuées par l'utilisateur
         $nbreCotisations = Cotisation::where('id_user', Auth::id())
             ->where('id_tontine', $tontine->id)
             ->count();
 
         if ($nbreCotisations >= $tontine->nbre_cotisation) {
             return redirect()->route('participant.cotisations.index')
-                ->with('error', "Vous avez atteint le nombre de cotisations maximum pour cette tontine.");
+                ->with('error', "Cotisations maximales atteintes.");
         }
 
-        // Calcul du montant à cotiser par séance
-        $montant_partiel = ($tontine->nbre_cotisation > 0) 
+        $montant_partiel = $tontine->nbre_cotisation > 0 
             ? $tontine->montant_de_base / $tontine->nbre_cotisation 
             : 0;
 
@@ -44,31 +41,27 @@ class CotisationController extends Controller
     }
 
     /**
-     * Enregistrer une nouvelle cotisation.
+     * Enregistre une cotisation.
      */
     public function store(Request $request, Tontine $tontine)
     {
-        // Vérifier si le participant a déjà atteint le nombre de cotisations
         $nbreCotisations = Cotisation::where('id_user', Auth::id())
             ->where('id_tontine', $tontine->id)
             ->count();
 
         if ($nbreCotisations >= $tontine->nbre_cotisation) {
             return redirect()->route('participant.cotisations.index')
-                ->with('error', "Vous avez atteint le nombre de cotisations maximum pour cette tontine.");
+                ->with('error', "Cotisations maximales atteintes.");
         }
 
-        // Calcul automatique du montant de cotisation
-        $montant_partiel = ($tontine->nbre_cotisation > 0) 
+        $montant_partiel = $tontine->nbre_cotisation > 0 
             ? $tontine->montant_de_base / $tontine->nbre_cotisation 
             : 0;
 
-        // Vérification si le montant est valide
         if ($montant_partiel <= 0) {
-            return redirect()->back()->with('error', "Erreur dans le calcul du montant.");
+            return redirect()->back()->with('error', "Montant invalide.");
         }
 
-        // Enregistrement de la cotisation
         Cotisation::create([
             'id_user' => Auth::id(),
             'id_tontine' => $tontine->id,
@@ -78,6 +71,6 @@ class CotisationController extends Controller
         ]);
 
         return redirect()->route('participant.cotisations.index')
-            ->with('success', "Cotisation enregistrée avec succès !");
+            ->with('success', "Cotisation enregistrée !");
     }
 }
