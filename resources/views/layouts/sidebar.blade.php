@@ -11,7 +11,7 @@
     <!-- Divider -->
     <hr class="sidebar-divider my-0">
 
-    <!-- Nav Item - Dashboard -->
+    <!-- Nav Item - Accueil -->
     <li class="nav-item">
         <a class="nav-link" href="{{ route('home') }}">
             <i class="fas fa-fw fa-home"></i>
@@ -78,28 +78,31 @@
         @endif
     @endauth
 
-    <!-- Heading -->
-    <div class="sidebar-heading">
-        Authentification
-    </div>
+    <!-- Section Authentification - Affichée SEULEMENT si l'utilisateur n'est PAS connecté -->
+    @guest
+        <!-- Heading -->
+        <div class="sidebar-heading">
+            Authentification
+        </div>
 
-    <!-- Nav Item - Connexion -->
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('auth.create') }}">
-            <i class="fas fa-fw fa-sign-in-alt"></i>
-            <span>Connexion</span>
-        </a>
-    </li>
+        <!-- Nav Item - Connexion -->
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('auth.create') }}">
+                <i class="fas fa-fw fa-sign-in-alt"></i>
+                <span>Connexion</span>
+            </a>
+        </li>
 
-    <!-- Nav Item - Inscription -->
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('inscription.index') }}">
-            <i class="fas fa-fw fa-user-plus"></i>
-            <span>Inscription</span>
-        </a>
-    </li>
+        <!-- Nav Item - Inscription -->
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('inscription.index') }}">
+                <i class="fas fa-fw fa-user-plus"></i>
+                <span>Inscription</span>
+            </a>
+        </li>
+    @endguest
 
-    <!-- Déconnexion -->
+    <!-- Déconnexion - Affichée SEULEMENT si l'utilisateur est connecté -->
     @auth
         <!-- Divider -->
         <hr class="sidebar-divider">
