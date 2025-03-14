@@ -29,14 +29,14 @@
                 <td>{{ number_format($tontine->montant_de_base, 2) }} FCFA</td>
                 <td>{{ $tontine->nbre_cotisation }}</td>
                 <td>
-                    @if($tontine->cotisationsRestantes() == 0)
+                    @if($tontine->cotisationsRestantesPourParticipant(Auth::id()) == 0)
                         <span class="badge badge-danger">Complète</span>
                     @else
-                        {{ $tontine->cotisationsRestantes() }}
+                        {{ $tontine->cotisationsRestantesPourParticipant(Auth::id()) }}
                     @endif
                 </td>
                 <td>
-                    @if($tontine->cotisationsRestantes() > 0)
+                    @if($tontine->cotisationsRestantesPourParticipant(Auth::id()) > 0)
                         <a href="{{ route('participant.cotisations.create', $tontine->id) }}" class="btn btn-primary">
                             Cotiser
                         </a>

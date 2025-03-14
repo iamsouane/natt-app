@@ -24,6 +24,12 @@ class CotisationController extends Controller
      */
     public function create(Tontine $tontine)
     {
+        // Vérification si le participant peut cotiser à cette séance
+        if (!$tontine->canCotiser()) {
+            return redirect()->route('participant.cotisations.index')
+                ->with('error', "La séance actuelle n'est pas encore terminée. Vous ne pouvez pas cotiser.");
+        }
+
         $nbreCotisations = Cotisation::where('id_user', Auth::id())
             ->where('id_tontine', $tontine->id)
             ->count();
@@ -45,6 +51,12 @@ class CotisationController extends Controller
      */
     public function store(Request $request, Tontine $tontine)
     {
+        // Vérification si le participant peut cotiser à cette séance
+        if (!$tontine->canCotiser()) {
+            return redirect()->route('participant.cotisations.index')
+                ->with('error', "La séance actuelle n'est pas encore terminée. Vous ne pouvez pas cotiser.");
+        }
+
         $nbreCotisations = Cotisation::where('id_user', Auth::id())
             ->where('id_tontine', $tontine->id)
             ->count();

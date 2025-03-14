@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
 
 class Tontine extends Model
 {
@@ -75,11 +76,15 @@ class Tontine extends Model
     }
 
     /**
-     * Retourne le nombre de cotisations restantes.
+     * Retourne le nombre de cotisations restantes pour un participant donné.
      */
-    public function cotisationsRestantes()
+    public function cotisationsRestantesPourParticipant($userId)
     {
-        return max(0, $this->nbre_cotisation - $this->cotisations()->count());
+        $cotisationsEffectuees = Cotisation::where('id_user', $userId)
+            ->where('id_tontine', $this->id)
+            ->count();
+
+        return max(0, $this->nbre_cotisation - $cotisationsEffectuees);
     }
 
     /**
@@ -132,4 +137,33 @@ class Tontine extends Model
                 return null; // Aucune fréquence définie
         }
     }
+
+    // Dans le modèle Tontine
+
+    public function canCotiser()
+    {
+        // Récupérer la dernière cotisation de l'utilisateur
+        $dernierPaiement = $this->cotisations()
+            ->where('id_user', Auth::id())
+            ->latest('date_cotisation')
+            ->first();
+
+        // Si aucun paiement n'a été effectué, vérifier si la date de début permet la cotisation
+        if (!$dernierPaiement) {
+            return Carbon::now()->greaterThanOrEqualTo($this->date_debut);
+        }
+
+        // Sinon, vérifier la date de la prochaine cotisation en fonction de la fréquence
+        switch ($this->frequence) {
+            case 'JOURNALIERE':
+                return Carbon::parse($dernierPaiement->date_cotisation)->addDay()->lessThanOrEqualTo(Carbon::now());
+            case 'HEBDOMADAIRE':
+                return Carbon::parse($dernierPaiement->date_cotisation)->addWeek()->lessThanOrEqualTo(Carbon::now());
+            case 'MENSUELLE':
+                return Carbon::parse($dernierPaiement->date_cotisation)->addMonth()->lessThanOrEqualTo(Carbon::now());
+            default:
+                return false; // Fréquence invalide ou non définie
+        }
+    }
+
 }
