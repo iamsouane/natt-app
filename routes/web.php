@@ -30,6 +30,8 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth', 'role:SUPER_ADMIN,GERANT'])->prefix('admin')->group(function () {
     Route::resource('tontines', TontineController::class);
     Route::resource('tirages', TirageController::class);
+    Route::post('tontines/sendEmails', [TontineController::class, 'sendEmails'])->name('tontines.sendEmails');
+
 });
 
 // Routes pour les participants

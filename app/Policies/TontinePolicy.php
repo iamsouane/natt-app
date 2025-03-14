@@ -37,4 +37,10 @@ class TontinePolicy
         // Logique pour vérifier si l'utilisateur peut supprimer une tontine
         return in_array($user->profil, ['SUPER_ADMIN', 'GERANT']);
     }
+
+    public function sendEmails(User $user)
+    {
+        // Vérifie si l'utilisateur a le profil SUPER_ADMIN ou GERANT
+        return in_array($user->profil, ['SUPER_ADMIN', 'GERANT']);
+    }
 }

@@ -4,7 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Tontine;
+use App\Models\Cotisation;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\TontineEmails; // Assurez-vous de créer une classe Mailable pour l'email
+use App\Models\User;
+use App\Mail\RappelCotisation;
 
 class TontineController extends Controller
 {
@@ -124,5 +129,32 @@ class TontineController extends Controller
     {
         $tontine->delete();
         return redirect()->route('tontines.index')->with('success', 'Tontine supprimée avec succès.');
+    }
+
+    // Envoi des emails de cotisation
+    public function sendEmails()
+    {
+        // Logique d'envoi d'email pour les rappels de cotisation
+        $participants = User::where('profil', 'PARTICIPANT')->get();
+        $tontines = Tontine::all();
+
+        foreach ($participants as $participant) {
+            foreach ($tontines as $tontine) {
+                $cotisation = Cotisation::where('id_user', $participant->id)
+                                        ->where('id_tontine', $tontine->id)
+                                        ->first();
+
+                if (!$cotisation || $cotisation->seanceEnRetard()) {
+                    // Envoi du rappel
+                    Mail::to($participant->email)->send(new RappelCotisation($participant, $tontine, 'rappel'));
+                } else {
+                    // Envoi de la confirmation
+                    Mail::to($participant->email)->send(new RappelCotisation($participant, $tontine, 'confirmation'));
+                }
+            }
+        }
+
+        // Message de succès
+        return redirect()->route('tontines.index')->with('success', 'Les emails ont été envoyés avec succès.');
     }
 }

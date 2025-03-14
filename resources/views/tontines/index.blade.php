@@ -22,6 +22,13 @@
             </div>
         @endif
 
+        @can('send-emails', App\Models\Tontine::class) <!-- Vérification si l'utilisateur peut envoyer les emails -->
+            <form action="{{ route('tontines.sendEmails') }}" method="POST" style="display:inline;">
+                @csrf
+                <button type="submit" class="btn btn-success mb-3">Envoyer les emails</button>
+            </form>
+        @endcan
+
         <table class="table table-bordered">
             <thead>
                 <tr>
