@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\RappelCotisation;
 
 class Cotisation extends Model
 {
@@ -17,7 +18,7 @@ class Cotisation extends Model
     ];
 
     protected $casts = [
-        'date_cotisation' => 'datetime', // Permet d'utiliser format() directement
+        'date_cotisation' => 'datetime',
     ];
 
     // Relation avec l'utilisateur
@@ -32,36 +33,37 @@ class Cotisation extends Model
         return $this->belongsTo(Tontine::class, 'id_tontine');
     }
 
-    // Vérifie si un participant a une cotisation en retard
-    public function cotisationEnRetard()
+    /**
+     * Vérifie si un participant a déjà payé pour la séance actuelle.
+     */
+    public function cotisationEffectuee()
     {
-        $tontine = $this->tontine;
-        $dernierPaiement = Cotisation::where('id_user', $this->id_user)
-            ->where('id_tontine', $tontine->id)
-            ->latest('date_cotisation')
-            ->first();
-
-        // Déterminer la prochaine date de cotisation
-        $prochaineCotisation = $dernierPaiement
-            ? $dernierPaiement->date_cotisation
-            : $tontine->date_debut;
-
-        switch ($tontine->frequence) {
-            case 'JOURNALIERE':
-                $prochaineCotisation = Carbon::parse($prochaineCotisation)->addDay();
-                break;
-            case 'HEBDOMADAIRE':
-                $prochaineCotisation = Carbon::parse($prochaineCotisation)->addWeek();
-                break;
-            case 'MENSUELLE':
-                $prochaineCotisation = Carbon::parse($prochaineCotisation)->addMonth();
-                break;
-        }
-
-        return Carbon::now()->greaterThan($prochaineCotisation);
+        $aujourdhui = Carbon::today();
+        return Cotisation::where('id_user', $this->id_user)
+            ->where('id_tontine', $this->id_tontine)
+            ->whereDate('date_cotisation', $aujourdhui)
+            ->exists();
     }
 
-    // Envoie un rappel de cotisation
+    /**
+     * Vérifie si un participant a une séance en retard.
+     */
+    public function seanceEnRetard()
+    {
+        $tontine = $this->tontine;
+        $dateDebut = Carbon::parse($tontine->date_debut);
+        $aujourdhui = Carbon::today();
+
+        if ($aujourdhui->greaterThan(Carbon::parse($tontine->date_fin))) {
+            return false; // Tontine terminée, pas de rappel nécessaire
+        }
+
+        return !$this->cotisationEffectuee(); // Retard si la cotisation n'est pas enregistrée
+    }
+
+    /**
+     * Envoie des rappels aux participants en retard ou une confirmation pour ceux qui ont déjà payé.
+     */
     public static function envoyerRappels()
     {
         $tontines = Tontine::with('cotisations.user')->get();
@@ -70,8 +72,14 @@ class Cotisation extends Model
             foreach ($tontine->cotisations as $cotisation) {
                 $participant = $cotisation->user;
 
-                if ($participant && $cotisation->cotisationEnRetard()) {
-                    Mail::to($participant->email)->send(new \App\Mail\RappelCotisation($participant, $tontine));
+                if ($participant->profil === 'PARTICIPANT') {
+                    if ($cotisation->seanceEnRetard()) {
+                        // Envoi d'un rappel pour retard
+                        Mail::to($participant->email)->send(new RappelCotisation($participant, $tontine, 'rappel'));
+                    } else {
+                        // Envoi d'une confirmation avec la prochaine échéance
+                        Mail::to($participant->email)->send(new RappelCotisation($participant, $tontine, 'confirmation'));
+                    }
                 }
             }
         }

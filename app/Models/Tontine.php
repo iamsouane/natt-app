@@ -81,4 +81,55 @@ class Tontine extends Model
     {
         return max(0, $this->nbre_cotisation - $this->cotisations()->count());
     }
+
+    /**
+     * Récupère la séance actuelle en fonction de la fréquence et de la date du jour.
+     */
+    public function getSeanceActuelle()
+    {
+        $dateDebut = Carbon::parse($this->date_debut);
+        $aujourdhui = Carbon::today();
+
+        switch ($this->frequence) {
+            case 'JOURNALIERE':
+                return $dateDebut->diffInDays($aujourdhui) + 1;
+            case 'HEBDOMADAIRE':
+                return $dateDebut->diffInWeeks($aujourdhui) + 1;
+            case 'MENSUELLE':
+                return $dateDebut->diffInMonths($aujourdhui) + 1;
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Récupère la prochaine date de cotisation
+     *
+     * @return Carbon|null
+     */
+    public function getDateProchaineCotisationAttribute()
+    {
+        // Dernière cotisation du participant
+        $dernierPaiement = $this->cotisations()->latest('date_cotisation')->first();
+
+        // Si aucune cotisation, la prochaine date est la date de début de la tontine
+        $prochaineCotisation = $dernierPaiement ? $dernierPaiement->date_cotisation : $this->date_debut;
+
+        // Vérifier si la date est définie avant d'appliquer les calculs
+        if (!$prochaineCotisation) {
+            return null;
+        }
+
+        // Calculer la prochaine cotisation en fonction de la fréquence
+        switch ($this->frequence) {
+            case 'JOURNALIERE':
+                return Carbon::parse($prochaineCotisation)->addDay();
+            case 'HEBDOMADAIRE':
+                return Carbon::parse($prochaineCotisation)->addWeek();
+            case 'MENSUELLE':
+                return Carbon::parse($prochaineCotisation)->addMonth();
+            default:
+                return null; // Aucune fréquence définie
+        }
+    }
 }
