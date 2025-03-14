@@ -134,7 +134,7 @@ class TontineController extends Controller
     // Envoi des emails de cotisation
     public function sendEmails()
     {
-        // Logique d'envoi d'email pour les rappels de cotisation
+        // Logique d'envoi d'email pour les rappels ou de confirmation de cotisation
         $participants = User::where('profil', 'PARTICIPANT')->get();
         $tontines = Tontine::all();
 
@@ -143,16 +143,17 @@ class TontineController extends Controller
                 $cotisation = Cotisation::where('id_user', $participant->id)
                                         ->where('id_tontine', $tontine->id)
                                         ->first();
-
+        
                 if (!$cotisation || $cotisation->seanceEnRetard()) {
-                    // Envoi du rappel
                     Mail::to($participant->email)->send(new RappelCotisation($participant, $tontine, 'rappel'));
                 } else {
-                    // Envoi de la confirmation
                     Mail::to($participant->email)->send(new RappelCotisation($participant, $tontine, 'confirmation'));
                 }
+        
+                // Ajoute une pause de 1 seconde entre chaque envoi
+                sleep(3);
             }
-        }
+        }        
 
         // Message de succès
         return redirect()->route('tontines.index')->with('success', 'Les emails ont été envoyés avec succès.');
