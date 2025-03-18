@@ -1,16 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\InscriptionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TontineController;
 use App\Http\Controllers\TirageController;
 use App\Http\Controllers\CotisationController;
-use App\Mail\RappelCotisation;
-use App\Models\User;
-use App\Models\Tontine;
-use App\Models\Cotisation;
 
 // Page d'accueil
 Route::get('/', [InscriptionController::class, 'home'])->name('home');
@@ -30,8 +25,14 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth', 'role:SUPER_ADMIN,GERANT'])->prefix('admin')->group(function () {
     Route::resource('tontines', TontineController::class);
     Route::resource('tirages', TirageController::class);
-    Route::post('tontines/sendEmails', [TontineController::class, 'sendEmails'])->name('tontines.sendEmails');
+    Route::get('tirages', [TirageController::class, 'index'])->name('tirages.index');
 
+    
+    // Route pour effectuer un tirage d'une séance donnée
+    Route::get('tirages/{tontine}/{seance}/effectuer', [TirageController::class, 'effectuerTirage'])
+    ->name('tirages.effectuer');
+
+    Route::post('tontines/sendEmails', [TontineController::class, 'sendEmails'])->name('tontines.sendEmails');
 });
 
 // Routes pour les participants

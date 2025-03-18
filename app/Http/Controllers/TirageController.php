@@ -3,101 +3,97 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Tirage;
 use App\Models\Tontine;
+use App\Models\Tirage;
 use App\Models\User;
+use App\Models\Cotisation;
 
 class TirageController extends Controller
 {
-    // Afficher la liste des tontines disponibles pour le tirage
-    public function index()
-{
-    // Récupérer toutes les tontines disponibles
-    $tontines = Tontine::all();
-
-    // Récupérer tous les tirages avec les informations de la tontine et du gagnant
-    $tirages = Tirage::with(['tontine', 'user'])->get();
-
-    // Passer les tontines et les tirages à la vue
-    return view('tirages.index', compact('tontines', 'tirages'));
-}
-
-
-    // Afficher le formulaire de création d'un tirage pour une tontine spécifique
-    public function create(Request $request)
+    public function index(Request $request)
     {
-        // Récupérer la tontine sélectionnée
-        $tontine = Tontine::findOrFail($request->get('tontine_id'));
+        // Récupère les tontines avec cotisations disponibles
+        $tontines = Tontine::where('nbre_cotisation', '>', 0)->get();
 
-        // Récupérer les utilisateurs ayant le profil "PARTICIPANT"
-        $users = User::where('profil', 'PARTICIPANT')->get();
+        // Récupère les tirages existants
+        $tirages = Tirage::with(['user', 'tontine'])
+            ->when($request->tontine_id, function ($query) use ($request) {
+                $query->where('id_tontine', $request->tontine_id);
+            })
+            ->latest()
+            ->get();
 
-        return view('tirages.create', compact('tontine', 'users'));
+        return view('tirages.index', compact('tontines', 'tirages'));
     }
 
-    // Enregistrer un nouveau tirage
-    public function store(Request $request)
-{
-    // Récupérer la tontine concernée
-    $tontine = Tontine::findOrFail($request->id_tontine);
-
-    // Récupérer les participants qui n'ont pas encore gagné dans cette tontine
-    $participantsEligibles = User::where('profil', 'PARTICIPANT')
-        ->whereDoesntHave('tirages', function ($query) use ($tontine) {
-            $query->where('id_tontine', $tontine->id);
-        })
-        ->get();
-
-    // Vérifier s'il y a des participants éligibles
-    if ($participantsEligibles->isEmpty()) {
-        return redirect()->back()->with('error', 'Tous les participants ont déjà gagné un tirage.');
-    }
-
-    // Sélectionner un gagnant au hasard
-    $gagnant = $participantsEligibles->random();
-
-    // Créer et enregistrer le tirage avec le gagnant
-    $tirage = Tirage::create([
-        'id_user' => $gagnant->id,
-        'id_tontine' => $tontine->id,
-        'date_tirage' => now(),
-    ]);
-
-    // Rediriger avec le nom du gagnant affiché
-    return redirect()->route('tirages.index')->with('success', "Le tirage a été effectué. Le gagnant est : {$gagnant->name}");
-}
-
-
-    // Afficher les détails d'un tirage
-    public function show(Tirage $tirage)
+    public function effectuerTirage(Request $request)
     {
-        return view('tirages.show', compact('tirage'));
-    }
+        $tontine = Tontine::findOrFail($request->tontine);
+        $seance = $request->input('seance'); // Séance sélectionnée
+        $nbParticipants = $tontine->nbre_participant;
 
-    // Modifier un tirage existant
-    public function edit(Tirage $tirage)
-    {
-        $tontines = Tontine::all();
-        $users = User::where('profil', 'PARTICIPANT')->get();
-        return view('tirages.edit', compact('tirage', 'tontines', 'users'));
-    }
+        // Vérifie que la séance demandée est valide et ne dépasse pas le nombre de cotisations
+        if ($seance > $tontine->nbre_cotisation) {
+            return back()->with('error', "Le nombre maximal de séances est atteint.");
+        }
 
-    // Mettre à jour un tirage
-    public function update(Request $request, Tirage $tirage)
-    {
-        $request->validate([
-            'id_user' => 'required|exists:users,id',
-            'id_tontine' => 'required|exists:tontines,id',
+        // Compte le nombre total de cotisations effectuées
+        $totalCotisations = Cotisation::where('id_tontine', $tontine->id)->count();
+
+        // Calcul de la séance actuelle en fonction du nombre total de cotisations
+        $seanceActuelle = ceil($totalCotisations / $nbParticipants);
+
+        // Vérifie que la séance demandée est bien la séance actuelle
+        if ($seance != $seanceActuelle) {
+            return back()->with('error', "Impossible de faire le tirage pour la séance $seance. La séance actuelle est la séance $seanceActuelle.");
+        }
+
+        // Vérifie que tous les participants ont cotisé pour cette séance
+        $cotisationsSeance = Cotisation::where('id_tontine', $tontine->id)
+            ->whereRaw('FLOOR((DATEDIFF(date_cotisation, ?) / ?) + 1) = ?', [$tontine->date_debut, 1, $seance])
+            ->pluck('id_user');
+
+        if ($cotisationsSeance->count() < $nbParticipants) {
+            return back()->with('error', "Tous les participants n'ont pas encore cotisé pour la séance $seance.");
+        }
+
+        // Vérifie s'il existe déjà un tirage pour cette séance
+        $tirageExist = Tirage::where('id_tontine', $tontine->id)
+                            ->where('numero_seance', $seance)
+                            ->exists();
+
+        // Si un tirage existe déjà pour cette séance, ne permet pas un nouveau tirage
+        if ($tirageExist) {
+            return back()->with('error', "Le tirage pour la séance $seance a déjà été effectué.");
+        }
+
+        // Exclut les gagnants précédents pour cette tontine et cette séance
+        $participantsEligibles = User::whereHas('cotisations', function ($query) use ($tontine) {
+                $query->where('id_tontine', $tontine->id);
+            })
+            ->whereDoesntHave('tirages', function ($query) use ($tontine, $seance) {
+                $query->where('id_tontine', $tontine->id)
+                    ->where('numero_seance', $seance);  // Assure que ce participant n'a pas gagné pour cette séance
+            })
+            ->get();
+
+        // Si aucun participant éligible, retourne une erreur
+        if ($participantsEligibles->isEmpty()) {
+            return back()->with('error', "Plus aucun participant éligible pour cette tontine. Tous ont déjà gagné.");
+        }
+
+        // Tirage pour un seul gagnant
+        $gagnant = $participantsEligibles->random();
+
+        // Enregistrement du tirage dans la base de données
+        Tirage::create([
+            'id_user' => $gagnant->id,
+            'id_tontine' => $tontine->id,
+            'numero_seance' => $seance,  // Assure que seul ce gagnant soit lié à cette séance
         ]);
 
-        $tirage->update($request->all());
-        return redirect()->route('tirages.index')->with('success', 'Tirage mis à jour avec succès.');
-    }
+        // Exclure ce gagnant des séances suivantes (c'est déjà géré par la condition `whereDoesntHave('tirages')`)
 
-    // Supprimer un tirage
-    public function destroy(Tirage $tirage)
-    {
-        $tirage->delete();
-        return redirect()->route('tirages.index')->with('success', 'Tirage supprimé avec succès.');
+        return redirect()->route('tirages.index')->with('gagnant', $gagnant->prenom . ' ' . $gagnant->nom);
     }
 }
