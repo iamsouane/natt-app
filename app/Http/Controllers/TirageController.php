@@ -73,7 +73,7 @@ class TirageController extends Controller
             })
             ->whereDoesntHave('tirages', function ($query) use ($tontine, $seance) {
                 $query->where('id_tontine', $tontine->id)
-                    ->where('numero_seance', $seance);  // Assure que ce participant n'a pas gagné pour cette séance
+                    ->where('numero_seance', '<', $seance); // Exclut les gagnants des séances précédentes
             })
             ->get();
 
@@ -92,8 +92,7 @@ class TirageController extends Controller
             'numero_seance' => $seance,  // Assure que seul ce gagnant soit lié à cette séance
         ]);
 
-        // Exclure ce gagnant des séances suivantes (c'est déjà géré par la condition `whereDoesntHave('tirages')`)
-
+        // Exclure ce gagnant des séances suivantes en utilisant la condition 'whereDoesntHave' pour le tirage
         return redirect()->route('tirages.index')->with('gagnant', $gagnant->prenom . ' ' . $gagnant->nom);
     }
 }
