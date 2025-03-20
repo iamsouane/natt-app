@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TontineController;
 use App\Http\Controllers\TirageController;
 use App\Http\Controllers\CotisationController;
+use App\Http\Controllers\NotificationController;
 
 // Page d'accueil
 Route::get('/', [InscriptionController::class, 'home'])->name('home');
@@ -26,12 +27,11 @@ Route::middleware(['auth', 'role:SUPER_ADMIN,GERANT'])->prefix('admin')->group(f
     Route::resource('tontines', TontineController::class);
     Route::resource('tirages', TirageController::class);
     Route::get('tirages', [TirageController::class, 'index'])->name('tirages.index');
-
     
     // Route pour effectuer un tirage d'une séance donnée
     Route::get('tirages/{tontine}/{seance}/effectuer', [TirageController::class, 'effectuerTirage'])
-    ->name('tirages.effectuer');
-
+        ->name('tirages.effectuer');
+    
     Route::post('tontines/sendEmails', [TontineController::class, 'sendEmails'])->name('tontines.sendEmails');
 });
 
@@ -41,4 +41,10 @@ Route::middleware(['auth', 'role:PARTICIPANT'])->prefix('participant')->group(fu
     Route::post('cotisations/{tontine}', [CotisationController::class, 'store'])->name('participant.cotisations.store');
     Route::get('cotisations', [CotisationController::class, 'index'])->name('participant.cotisations.index');
     Route::get('/cotisations/{cotisation}', [CotisationController::class, 'show'])->name('participant.cotisations.show');
+});
+
+// Routes pour la gestion des notifications
+Route::middleware(['auth'])->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
 });

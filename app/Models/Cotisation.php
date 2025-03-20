@@ -51,6 +51,12 @@ class Cotisation extends Model
     public function seanceEnRetard()
     {
         $tontine = $this->tontine;
+
+        // Vérifie si la tontine existe
+        if (!$tontine) {
+            return false; // Aucun retard si pas de tontine liée
+        }
+
         $dateDebut = Carbon::parse($tontine->date_debut);
         $aujourdhui = Carbon::today();
 
