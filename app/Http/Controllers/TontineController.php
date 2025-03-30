@@ -7,9 +7,9 @@ use App\Models\Tontine;
 use App\Models\Cotisation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\RappelCotisation;
+use App\Mail\TontineEmails; // Assurez-vous de créer une classe Mailable pour l'email
 use App\Models\User;
-use App\Notifications\RappelCotisationNotification;
+use App\Mail\RappelCotisation;
 
 class TontineController extends Controller
 {
@@ -40,16 +40,20 @@ class TontineController extends Controller
             'nbre_participant' => 'required|integer|min:1',
         ]);
 
+        // Calcul de la durée en jours
         $dateDebut = Carbon::parse($request->date_debut);
         $dateFin = Carbon::parse($request->date_fin);
         $duree = $dateDebut->diffInDays($dateFin);
 
+        // Vérifier la fréquence en fonction de la durée
         if ($duree < 30 && !in_array($request->frequence, ['JOURNALIERE', 'HEBDOMADAIRE'])) {
             return redirect()->back()->withErrors(['frequence' => "Pour une durée inférieure à 30 jours, la fréquence doit être JOURNALIERE ou HEBDOMADAIRE."])->withInput();
         }
 
+        // Calcul du nombre de cotisations
         $nbreCotisation = intval($request->montant_total / $request->montant_de_base);
 
+        // Création de la tontine avec le calcul automatique de nbre_cotisation
         Tontine::create([
             'frequence' => $request->frequence,
             'libelle' => $request->libelle,
@@ -91,16 +95,20 @@ class TontineController extends Controller
             'nbre_participant' => 'required|integer|min:1',
         ]);
 
+        // Calcul de la durée
         $dateDebut = Carbon::parse($request->date_debut);
         $dateFin = Carbon::parse($request->date_fin);
         $duree = $dateDebut->diffInDays($dateFin);
 
+        // Vérifier la fréquence en fonction de la durée
         if ($duree < 30 && !in_array($request->frequence, ['JOURNALIERE', 'HEBDOMADAIRE'])) {
             return redirect()->back()->withErrors(['frequence' => "Pour une durée inférieure à 30 jours, la fréquence doit être JOURNALIERE ou HEBDOMADAIRE."])->withInput();
         }
 
+        // Recalcul du nombre de cotisations
         $nbreCotisation = intval($request->montant_total / $request->montant_de_base);
 
+        // Mise à jour des informations de la tontine
         $tontine->update([
             'frequence' => $request->frequence,
             'libelle' => $request->libelle,
@@ -123,9 +131,10 @@ class TontineController extends Controller
         return redirect()->route('tontines.index')->with('success', 'Tontine supprimée avec succès.');
     }
 
-    // Envoi des emails et notifications pour la cotisation
+    // Envoi des emails de cotisation
     public function sendEmails()
     {
+        // Logique d'envoi d'email pour les rappels ou de confirmation de cotisation
         $participants = User::where('profil', 'PARTICIPANT')->get();
         $tontines = Tontine::all();
 
@@ -134,36 +143,19 @@ class TontineController extends Controller
                 $cotisation = Cotisation::where('id_user', $participant->id)
                                         ->where('id_tontine', $tontine->id)
                                         ->first();
-
-                // Envoi de la notification (indépendant de Mailtrap)
-                if (!$cotisation || ($cotisation && $cotisation->seanceEnRetard())) {
-                    // Envoi de la notification pour le retard
-                    $participant->notify(new RappelCotisationNotification($participant, $tontine, 'rappel'));
+        
+                if (!$cotisation || $cotisation->seanceEnRetard()) {
+                    Mail::to($participant->email)->send(new RappelCotisation($participant, $tontine, 'rappel'));
                 } else {
-                    // Envoi de la notification de confirmation
-                    $participant->notify(new RappelCotisationNotification($participant, $tontine, 'confirmation'));
+                    Mail::to($participant->email)->send(new RappelCotisation($participant, $tontine, 'confirmation'));
                 }
-
-                // Essayer d'envoyer l'email même si le plan Mailtrap est épuisé
-                try {
-                    if (!$cotisation || ($cotisation && $cotisation->seanceEnRetard())) {
-                        // Envoi email rappel
-                        Mail::to($participant->email)->send(new RappelCotisation($participant, $tontine, 'rappel'));
-                    } else {
-                        // Envoi email confirmation
-                        Mail::to($participant->email)->send(new RappelCotisation($participant, $tontine, 'confirmation'));
-                    }
-                } catch (\Exception $e) {
-                    // Gérer l'exception (plan Mailtrap épuisé), mais les notifications seront envoyées
-                    // Vous pouvez également enregistrer l'exception dans les logs si nécessaire
-                    Log::error('Erreur lors de l\'envoi de l\'email: ' . $e->getMessage());
-                }
-
-                // Petite pause pour éviter d’être considéré comme spam
+        
+                // Ajoute une pause de 1 seconde entre chaque envoi
                 sleep(3);
             }
-        }
+        }        
 
-        return redirect()->route('tontines.index')->with('success', 'Les emails et notifications ont été envoyés avec succès.');
+        // Message de succès
+        return redirect()->route('tontines.index')->with('success', 'Les emails ont été envoyés avec succès.');
     }
 }

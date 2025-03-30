@@ -20,50 +20,6 @@
     <!-- Topbar Navbar -->
     <ul class="navbar-nav ml-auto">
         @if(Auth::check())
-        <!-- Notifications -->
-        <li class="nav-item dropdown no-arrow mx-1">
-            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
-                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-bell fa-fw"></i>
-                @php
-                    $unreadNotifications = Auth::user()->unreadNotifications()->latest()->limit(5)->get();
-                @endphp
-                @if($unreadNotifications->count() > 0)
-                    <span class="badge badge-danger badge-counter">{{ $unreadNotifications->count() }}</span>
-                @endif
-            </a>
-            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                aria-labelledby="alertsDropdown">
-                <h6 class="dropdown-header">
-                    Notifications récentes
-                </h6>
-
-                @forelse($unreadNotifications as $notification)
-                <a class="dropdown-item d-flex align-items-center" 
-                   href="{{ route('notifications.index') }}"
-                   onclick="event.preventDefault(); document.getElementById('mark-as-read-{{ $notification->id }}').submit();">
-                    <div class="mr-3">
-                        <div class="icon-circle bg-primary">
-                            <i class="fas fa-info text-white"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="small text-gray-500">{{ $notification->created_at->format('d/m/Y H:i') }}</div>
-                        <span class="font-weight-bold">{{ $notification->data['message'] ?? 'Aucun message disponible' }}</span>
-                    </div>
-                </a>
-                <form id="mark-as-read-{{ $notification->id }}" method="POST" action="{{ route('notifications.markAsRead', $notification->id) }}" style="display: none;">
-                    @csrf
-                    @method('PATCH')
-                </form>
-                @empty
-                <span class="dropdown-item text-center small text-gray-500">Aucune notification non lue</span>
-                @endforelse
-
-                <a class="dropdown-item text-center small text-primary" href="{{ route('notifications.index') }}">Voir toutes les notifications</a>
-            </div>
-        </li>
-
         <!-- User Information -->
         <li class="nav-item dropdown no-arrow">
             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"

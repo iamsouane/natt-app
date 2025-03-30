@@ -42,9 +42,3 @@ Route::middleware(['auth', 'role:PARTICIPANT'])->prefix('participant')->group(fu
     Route::get('cotisations', [CotisationController::class, 'index'])->name('participant.cotisations.index');
     Route::get('/cotisations/{cotisation}', [CotisationController::class, 'show'])->name('participant.cotisations.show');
 });
-
-// Routes pour la gestion des notifications
-Route::middleware(['auth'])->group(function () {
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::patch('/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
-});
