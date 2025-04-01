@@ -8,6 +8,7 @@ use App\Http\Controllers\TirageController;
 use App\Http\Controllers\CotisationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GestionController; // Ajout du GestionController
+use App\Http\Controllers\UserController;
 
 // Page d'accueil
 Route::get('/', [InscriptionController::class, 'home'])->name('home');
@@ -36,10 +37,15 @@ Route::middleware(['auth', 'role:SUPER_ADMIN,GERANT'])->prefix('admin')->group(f
     Route::post('tontines/sendEmails', [TontineController::class, 'sendEmails'])->name('tontines.sendEmails');
 });
 
-// Routes pour la gestion des tontines (participants et cotisations) - uniquement pour SUPER_ADMIN
-Route::middleware(['auth', 'role:SUPER_ADMIN'])->prefix('admin/gestion')->group(function () {
+    // Routes pour la gestion des tontines (participants et cotisations) - uniquement pour SUPER_ADMIN
+    Route::middleware(['auth', 'role:SUPER_ADMIN'])->prefix('admin/gestion')->group(function () {
     Route::get('/', [GestionController::class, 'index'])->name('gestion.index');
     Route::get('/{tontine}', [GestionController::class, 'show'])->name('gestion.show');
+
+    Route::middleware(['auth', 'role:SUPER_ADMIN'])->group(function () {
+        Route::post('/participants/{user}/promote', [UserController::class, 'promoteToGérant'])->name('participants.promote');
+    });
+    
 });
 
 // Routes pour les participants

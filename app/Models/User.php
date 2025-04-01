@@ -49,4 +49,10 @@ class User extends Authenticatable
     {
         return $this->hasOne(Participant::class, 'id_user');
     }
+
+    public function tontinesGerant()
+    {
+        return $this->belongsToMany(Tontine::class, 'gerants_tontines', 'gerant_id', 'tontine_id');
+    }
+
 }
