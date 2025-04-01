@@ -158,4 +158,16 @@ class TontineController extends Controller
         // Message de succès
         return redirect()->route('tontines.index')->with('success', 'Les emails ont été envoyés avec succès.');
     }
+
+    public function gestion(Tontine $tontine)
+    {
+        $participants = User::whereHas('cotisations', function ($query) use ($tontine) {
+            $query->where('id_tontine', $tontine->id);
+        })->get();
+
+        $cotisations = Cotisation::where('id_tontine', $tontine->id)->get();
+
+        return view('tontines.gestion', compact('tontine', 'participants', 'cotisations'));
+    }
+
 }

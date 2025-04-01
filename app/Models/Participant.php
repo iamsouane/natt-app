@@ -22,4 +22,9 @@ class Participant extends Model
     {
         return $this->belongsTo(User::class, 'id_user');
     }
+
+    public function cotisations()
+    {
+        return $this->hasMany(Cotisation::class, 'id_user');
+    }
 }
