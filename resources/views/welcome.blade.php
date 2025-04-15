@@ -15,7 +15,7 @@
                         <h3>Choisissez une Tontine pour cotiser</h3>
                         <p>Vous pouvez voir toutes les tontines disponibles et cotiser en cliquant sur le lien ci-dessous :</p>
 
-                        <a href="{{ route('participant.cotisations.index') }}" class="btn btn-primary btn-lg">Voir les Tontines disponibles</a>
+                        <a href="{{ route('participant.index') }}" class="btn btn-primary btn-lg">Voir les Tontines disponibles</a>
                     @endif
 
                     <!-- Liens pour les utilisateurs connectés -->

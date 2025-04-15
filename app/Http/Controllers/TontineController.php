@@ -20,6 +20,13 @@ class TontineController extends Controller
         return view('tontines.index', compact('tontines'));
     }
 
+    public function voirPourParticipant()
+    {
+        $tontines = \App\Models\Tontine::with('participants')->get();
+
+        return view('participant.index', compact('tontines'));
+    }
+
     // Afficher le formulaire de création d'une tontine
     public function create()
     {
@@ -158,16 +165,4 @@ class TontineController extends Controller
         // Message de succès
         return redirect()->route('tontines.index')->with('success', 'Les emails ont été envoyés avec succès.');
     }
-
-    public function gestion(Tontine $tontine)
-    {
-        $participants = User::whereHas('cotisations', function ($query) use ($tontine) {
-            $query->where('id_tontine', $tontine->id);
-        })->get();
-
-        $cotisations = Cotisation::where('id_tontine', $tontine->id)->get();
-
-        return view('tontines.gestion', compact('tontine', 'participants', 'cotisations'));
-    }
-
 }

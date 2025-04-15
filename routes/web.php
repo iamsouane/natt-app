@@ -6,9 +6,6 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TontineController;
 use App\Http\Controllers\TirageController;
 use App\Http\Controllers\CotisationController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\GestionController; // Ajout du GestionController
-use App\Http\Controllers\UserController;
 
 // Page d'accueil
 Route::get('/', [InscriptionController::class, 'home'])->name('home');
@@ -29,29 +26,20 @@ Route::middleware(['auth', 'role:SUPER_ADMIN,GERANT'])->prefix('admin')->group(f
     Route::resource('tontines', TontineController::class);
     Route::resource('tirages', TirageController::class);
     Route::get('tirages', [TirageController::class, 'index'])->name('tirages.index');
+
     
     // Route pour effectuer un tirage d'une séance donnée
     Route::get('tirages/{tontine}/{seance}/effectuer', [TirageController::class, 'effectuerTirage'])
-        ->name('tirages.effectuer');
-    
+    ->name('tirages.effectuer');
+
     Route::post('tontines/sendEmails', [TontineController::class, 'sendEmails'])->name('tontines.sendEmails');
-});
-
-    // Routes pour la gestion des tontines (participants et cotisations) - uniquement pour SUPER_ADMIN
-    Route::middleware(['auth', 'role:SUPER_ADMIN'])->prefix('admin/gestion')->group(function () {
-    Route::get('/', [GestionController::class, 'index'])->name('gestion.index');
-    Route::get('/{tontine}', [GestionController::class, 'show'])->name('gestion.show');
-
-    Route::middleware(['auth', 'role:SUPER_ADMIN'])->group(function () {
-        Route::post('/participants/{user}/promote', [UserController::class, 'promoteToGérant'])->name('participants.promote');
-    });
-    
 });
 
 // Routes pour les participants
 Route::middleware(['auth', 'role:PARTICIPANT'])->prefix('participant')->group(function () {
     Route::get('cotisations/{tontine}/create', [CotisationController::class, 'create'])->name('participant.cotisations.create');
     Route::post('cotisations/{tontine}', [CotisationController::class, 'store'])->name('participant.cotisations.store');
+    Route::get('tontines', [TontineController::class, 'voirPourParticipant'])->name('participant.index');
     Route::get('cotisations', [CotisationController::class, 'index'])->name('participant.cotisations.index');
     Route::get('/cotisations/{cotisation}', [CotisationController::class, 'show'])->name('participant.cotisations.show');
 });

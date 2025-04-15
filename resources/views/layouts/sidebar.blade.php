@@ -30,13 +30,6 @@
                 Gestion
             </div>
 
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('gestion.index') }}">
-                    <i class="fas fa-fw fa-users-cog"></i>
-                    <span>Gestion des tontines</span>
-                </a>
-            </li>
-
             <!-- Nav Item - Tontines -->
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('tontines.index') }}">
@@ -66,7 +59,7 @@
 
             <!-- Nav Item - Voir Tontines -->
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('tontines.index') }}">
+                <a class="nav-link" href="{{ route('participant.index') }}">
                     <i class="fas fa-fw fa-eye"></i>
                     <span>Voir Tontines</span>
                 </a>

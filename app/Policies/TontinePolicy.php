@@ -43,10 +43,4 @@ class TontinePolicy
         // Vérifie si l'utilisateur a le profil SUPER_ADMIN ou GERANT
         return in_array($user->profil, ['SUPER_ADMIN', 'GERANT']);
     }
-
-    public function manage(User $user, Tontine $tontine)
-    {
-        return $user->profil === 'SUPER_ADMIN' || 
-            ($user->profil === 'GERANT' && $user->tontinesGerant->contains($tontine->id));
-    }
 }
