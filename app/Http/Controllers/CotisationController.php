@@ -24,15 +24,15 @@ class CotisationController extends Controller
      */
     public function create(Tontine $tontine)
     {
-        // Vérification si le participant peut cotiser à cette séance
-        if (!$tontine->canCotiser()) {
-            return redirect()->route('participant.cotisations.index')
-                ->with('error', "La séance actuelle n'est pas encore terminée. Vous ne pouvez pas cotiser.");
-        }
-
         $nbreCotisations = Cotisation::where('id_user', Auth::id())
             ->where('id_tontine', $tontine->id)
             ->count();
+
+        // Empêche un nouveau participant de cotiser après la fin de la première séance
+        if ($nbreCotisations === 0 && !$tontine->canCotiser()) {
+            return redirect()->route('participant.cotisations.index')
+                ->with('error', "Vous ne pouvez plus rejoindre cette tontine. La première séance est terminée.");
+        }
 
         if ($nbreCotisations >= $tontine->nbre_cotisation) {
             return redirect()->route('participant.cotisations.index')
@@ -51,15 +51,15 @@ class CotisationController extends Controller
      */
     public function store(Request $request, Tontine $tontine)
     {
-        // Vérification si le participant peut cotiser à cette séance
-        if (!$tontine->canCotiser()) {
-            return redirect()->route('participant.cotisations.index')
-                ->with('error', "La séance actuelle n'est pas encore terminée. Vous ne pouvez pas cotiser.");
-        }
-
         $nbreCotisations = Cotisation::where('id_user', Auth::id())
             ->where('id_tontine', $tontine->id)
             ->count();
+
+        // Empêche un nouveau participant de cotiser après la fin de la première séance
+        if ($nbreCotisations === 0 && !$tontine->canCotiser()) {
+            return redirect()->route('participant.cotisations.index')
+                ->with('error', "Vous ne pouvez plus cotiser. La première séance est terminée.");
+        }
 
         if ($nbreCotisations >= $tontine->nbre_cotisation) {
             return redirect()->route('participant.cotisations.index')
