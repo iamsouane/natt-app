@@ -4,25 +4,19 @@
     <div class="container">
         <h1>Liste des Tontines</h1>
 
-        @can('create', App\Models\Tontine::class) <!-- Vérification si l'utilisateur peut créer une tontine -->
+        @can('create', App\Models\Tontine::class)
             <a href="{{ route('tontines.create') }}" class="btn btn-primary mb-3">Créer une Tontine</a>
         @endcan
 
-        <!-- Affichage du message de succès -->
         @if (session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
-            </div>
+            <div class="alert alert-success">{{ session('success') }}</div>
         @endif
 
-        <!-- Affichage du message d'erreur -->
         @if (session('error'))
-            <div class="alert alert-danger">
-                {{ session('error') }}
-            </div>
+            <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
 
-        @can('send-emails', App\Models\Tontine::class) <!-- Vérification si l'utilisateur peut envoyer les emails -->
+        @can('send-emails', App\Models\Tontine::class)
             <form action="{{ route('tontines.sendEmails') }}" method="POST" style="display:inline;">
                 @csrf
                 <button type="submit" class="btn btn-success mb-3">Envoyer les emails</button>
@@ -36,6 +30,7 @@
                     <th>Fréquence</th>
                     <th>Date de début</th>
                     <th>Date de fin</th>
+                    <th>Images</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -47,16 +42,21 @@
                         <td>{{ \Carbon\Carbon::parse($tontine->date_debut)->format('m/d/Y') }}</td>
                         <td>{{ \Carbon\Carbon::parse($tontine->date_fin)->format('m/d/Y') }}</td>
                         <td>
-                            <!-- Bouton "Voir" -->
+                            @foreach ($tontine->images as $image)
+                                <img src="{{ asset('storage/tontines/' . $image->nom_image) }}" 
+                                     alt="{{ $image->nom_image }}" 
+                                     style="width: 100px; height: auto; margin-bottom: 5px; cursor: pointer;"
+                                     data-toggle="modal" 
+                                     data-target="#imageModal" 
+                                     onclick="document.getElementById('modalImage').src='{{ asset('storage/tontines/' . $image->nom_image) }}'">
+                            @endforeach
+                        </td>
+                        <td>
                             <a href="{{ route('tontines.show', $tontine) }}" class="btn btn-info btn-sm">Voir</a>
-
-                            @can('update', $tontine) <!-- Vérification si l'utilisateur peut modifier cette tontine -->
-                                <!-- Bouton "Modifier" -->
+                            @can('update', $tontine)
                                 <a href="{{ route('tontines.edit', $tontine) }}" class="btn btn-warning btn-sm">Modifier</a>
                             @endcan
-
-                            @can('delete', $tontine) <!-- Vérification si l'utilisateur peut supprimer cette tontine -->
-                                <!-- Bouton "Supprimer" -->
+                            @can('delete', $tontine)
                                 <form action="{{ route('tontines.destroy', $tontine) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
@@ -68,5 +68,22 @@
                 @endforeach
             </tbody>
         </table>
+    </div>
+
+    <!-- Modale Bootstrap 4 -->
+    <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">Aperçu de l'image</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalImage" src="" alt="Image" class="img-fluid" />
+                </div>
+            </div>
+        </div>
     </div>
 @endsection

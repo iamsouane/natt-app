@@ -16,7 +16,7 @@
 
         <div class="card shadow-sm">
             <div class="card-body">
-                <form action="{{ route('tontines.store') }}" method="POST">
+                <form action="{{ route('tontines.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
                     <div class="form-group mb-3">
@@ -63,6 +63,14 @@
                     <div class="form-group mb-3">
                         <label for="nbre_participant" class="form-label">Nombre de participants</label>
                         <input type="number" name="nbre_participant" id="nbre_participant" class="form-control" value="{{ old('nbre_participant') }}" required>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="form-group mb-3">
+                        <label for="images" class="form-label">Images de la tontine</label>
+                        <input type="file" name="images[]" id="images" class="form-control" multiple accept="image/*">
+                        <small class="form-text text-muted">Vous pouvez sélectionner plusieurs fichiers (JPEG, PNG, etc.).</small>
                     </div>
 
                     <div class="d-flex justify-content-between">

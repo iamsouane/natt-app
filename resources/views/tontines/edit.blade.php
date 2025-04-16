@@ -2,81 +2,90 @@
 
 @section('content')
     <div class="container">
-        <h1 class="mb-4">Modifier la Tontine</h1>
+        <h1>Modifier la Tontine : {{ $tontine->libelle }}</h1>
 
-        @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+        <form action="{{ route('tontines.update', $tontine) }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
+
+            <div class="form-group">
+                <label for="libelle">Libellé</label>
+                <input type="text" class="form-control" id="libelle" name="libelle" value="{{ old('libelle', $tontine->libelle) }}" required>
             </div>
-        @endif
 
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <form action="{{ route('tontines.update', $tontine) }}" method="POST">
-                    @csrf
-                    @method('PUT')
+            <div class="form-group">
+                <label for="frequence">Fréquence</label>
+                <select class="form-control" id="frequence" name="frequence" required>
+                    <option value="JOURNALIERE" {{ old('frequence', $tontine->frequence) == 'JOURNALIERE' ? 'selected' : '' }}>Journalière</option>
+                    <option value="HEBDOMADAIRE" {{ old('frequence', $tontine->frequence) == 'HEBDOMADAIRE' ? 'selected' : '' }}>Hebdomadaire</option>
+                    <option value="MENSUELLE" {{ old('frequence', $tontine->frequence) == 'MENSUELLE' ? 'selected' : '' }}>Mensuelle</option>
+                </select>
+            </div>
 
-                    <div class="form-group mb-3">
-                        <label for="frequence" class="form-label">Fréquence</label>
-                        <select name="frequence" id="frequence" class="form-control" required>
-                            <option value="JOURNALIERE" {{ $tontine->frequence === 'JOURNALIERE' ? 'selected' : '' }}>Journalière</option>
-                            <option value="HEBDOMADAIRE" {{ $tontine->frequence === 'HEBDOMADAIRE' ? 'selected' : '' }}>Hebdomadaire</option>
-                            <option value="MENSUELLE" {{ $tontine->frequence === 'MENSUELLE' ? 'selected' : '' }}>Mensuelle</option>
-                        </select>
-                    </div>
+            <div class="form-group">
+                <label for="date_debut">Date de début</label>
+                <input type="date" class="form-control" id="date_debut" name="date_debut" value="{{ old('date_debut', $tontine->date_debut) }}" required>
+            </div>
 
-                    <div class="form-group mb-3">
-                        <label for="libelle" class="form-label">Libellé</label>
-                        <input type="text" name="libelle" id="libelle" class="form-control" value="{{ old('libelle', $tontine->libelle) }}" required>
-                    </div>
+            <div class="form-group">
+                <label for="date_fin">Date de fin</label>
+                <input type="date" class="form-control" id="date_fin" name="date_fin" value="{{ old('date_fin', $tontine->date_fin) }}" required>
+            </div>
 
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3" required>{{ old('description', $tontine->description) }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="montant_total">Montant total</label>
+                <input type="number" class="form-control" id="montant_total" name="montant_total" value="{{ old('montant_total', $tontine->montant_total) }}" required min="1">
+            </div>
+
+            <div class="form-group">
+                <label for="montant_de_base">Montant de base</label>
+                <input type="number" class="form-control" id="montant_de_base" name="montant_de_base" value="{{ old('montant_de_base', $tontine->montant_de_base) }}" required min="1">
+            </div>
+
+            <div class="form-group">
+                <label for="nbre_participant">Nombre de participants</label>
+                <input type="number" class="form-control" id="nbre_participant" name="nbre_participant" value="{{ old('nbre_participant', $tontine->nbre_participant) }}" required min="1">
+            </div>
+
+            <div class="form-group">
+                <label for="images">Images (optionnelles)</label>
+                <input type="file" class="form-control-file" id="images" name="images[]" multiple>
+                @if ($tontine->images->count())
+                    <p>Images actuelles :</p>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="date_debut" class="form-label">Date de début</label>
-                            <input type="date" name="date_debut" id="date_debut" class="form-control"
-                                   value="{{ old('date_debut', \Carbon\Carbon::parse($tontine->date_debut)->format('Y-m-d')) }}" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="date_fin" class="form-label">Date de fin</label>
-                            <input type="date" name="date_fin" id="date_fin" class="form-control"
-                                   value="{{ old('date_fin', \Carbon\Carbon::parse($tontine->date_fin)->format('Y-m-d')) }}" required>
-                        </div>
+                        @foreach ($tontine->images as $image)
+                            <div class="col-md-3">
+                                <img src="{{ asset('storage/tontines/' . $image->nom_image) }}" class="img-fluid" style="height: 100px; margin-bottom: 10px;" data-toggle="modal" data-target="#imageModal" onclick="document.getElementById('modalImage').src='{{ asset('storage/tontines/' . $image->nom_image) }}'">
+                            </div>
+                        @endforeach
                     </div>
+                @endif
+            </div>
 
-                    <div class="form-group mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea name="description" id="description" class="form-control" required>{{ old('description', $tontine->description) }}</textarea>
-                    </div>
+            <button type="submit" class="btn btn-warning">Mettre à jour</button>
+        </form>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="montant_total" class="form-label">Montant total</label>
-                            <input type="number" name="montant_total" id="montant_total" class="form-control"
-                                   value="{{ old('montant_total', $tontine->montant_total) }}" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="montant_de_base" class="form-label">Montant de base</label>
-                            <input type="number" name="montant_de_base" id="montant_de_base" class="form-control"
-                                   value="{{ old('montant_de_base', $tontine->montant_de_base) }}" required>
-                        </div>
+        <!-- Modale pour afficher l'image -->
+        <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="imageModalLabel">Aperçu de l'image</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-
-                    <div class="form-group mb-3">
-                        <label for="nbre_participant" class="form-label">Nombre de participants</label>
-                        <input type="number" name="nbre_participant" id="nbre_participant" class="form-control"
-                               value="{{ old('nbre_participant', $tontine->nbre_participant) }}" required>
+                    <div class="modal-body text-center">
+                        <img id="modalImage" src="" alt="Image" class="img-fluid" />
                     </div>
-
-                    <div class="d-flex justify-content-between">
-                        <a href="{{ route('tontines.index') }}" class="btn btn-secondary">Annuler</a>
-                        <button type="submit" class="btn btn-primary">Mettre à jour</button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
+
     </div>
 @endsection

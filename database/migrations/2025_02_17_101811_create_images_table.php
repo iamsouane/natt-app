@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('chemin_image'); // Ajout d'une colonne pour le chemin de l'image
             $table->timestamps();
 
-            $table->foreign('id_tontine')->references('id')->on('tontines');
+            $table->foreign('id_tontine')->references('id')->on('tontines')->onDelete('cascade');
         });
     }
 

@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class Image extends Model
 {
     protected $fillable = [
-        'id_tontine', // Correction : 'id_tontine' au lieu de 'id_user'
-        'nom_image'
-    ];
+        'id_tontine',
+        'nom_image',
+        'chemin_image',
+    ];    
 
     // Relation avec la tontine
     public function tontine()

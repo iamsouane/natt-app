@@ -49,6 +49,11 @@ class Tontine extends Model
         return $this->hasManyThrough(Participant::class, Cotisation::class, 'id_tontine', 'id_user', 'id', 'id_user');
     }
 
+    public function images()
+    {
+        return $this->hasMany(Image::class, 'id_tontine');
+    }
+
     /**
      * Calcule le nombre total de cotisations en fonction de la durée et de la fréquence.
      */
