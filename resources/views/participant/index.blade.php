@@ -19,11 +19,43 @@
                             <p><strong>Montant :</strong> {{ $tontine->montant_de_base }} FCFA</p>
                             <p><strong>Participants :</strong> {{ $tontine->participants->count() }}</p>
                             <p><strong>Date de début :</strong> {{ \Carbon\Carbon::parse($tontine->date_debut)->format('d/m/Y') }}</p>
+                            <p><strong>Date de fin :</strong> {{ \Carbon\Carbon::parse($tontine->date_fin)->format('d/m/Y') }}</p>
+                            
+                            @if($tontine->images->isNotEmpty())
+                                <div class="mt-3">
+                                    <strong>Image :</strong><br>
+                                    @foreach ($tontine->images as $image)
+                                        <img src="{{ asset('storage/tontines/' . $image->nom_image) }}" 
+                                             alt="{{ $image->nom_image }}" 
+                                             style="width: 100px; height: auto; margin-bottom: 5px; cursor: pointer;"
+                                             data-toggle="modal" 
+                                             data-target="#imageModal" 
+                                             onclick="document.getElementById('modalImage').src='{{ asset('storage/tontines/' . $image->nom_image) }}'">
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
             @endforeach
         </div>
     @endif
+</div>
+
+<!-- Modale Bootstrap pour affichage de l’image -->
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Aperçu de l'image</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" alt="Image" class="img-fluid" />
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
