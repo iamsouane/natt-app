@@ -57,30 +57,54 @@
                                 <a href="{{ route('tontines.edit', $tontine) }}" class="btn btn-warning btn-sm">Modifier</a>
                             @endcan
                             @can('delete', $tontine)
-                                <form action="{{ route('tontines.destroy', $tontine) }}" method="POST" style="display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette tontine ?')">Supprimer</button>
-                                </form>
+                                <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal{{ $tontine->id }}">
+                                    Supprimer
+                                </button>
                             @endcan
                         </td>
                     </tr>
+
+                    <!-- Modale de confirmation de suppression -->
+                    <div class="modal fade" id="deleteModal{{ $tontine->id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ $tontine->id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel{{ $tontine->id }}">Confirmer la suppression</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    Êtes-vous sûr de vouloir supprimer cette tontine ?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                                    <form action="{{ route('tontines.destroy', $tontine) }}" method="POST" style="display:inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger">Supprimer</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 @endforeach
             </tbody>
         </table>
     </div>
 
-    <!-- Modale Bootstrap 4 -->
+    <!-- Modale Bootstrap pour l'aperçu de l'image -->
     <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="imageModalLabel">Aperçu de l'image</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body text-center">
+                <div class="modal-body">
+                    <!-- L'image s'affiche ici -->
                     <img id="modalImage" src="" alt="Image" class="img-fluid" />
                 </div>
             </div>
