@@ -28,20 +28,21 @@ class ProfileController extends Controller
         $user->nom = $request->nom;
         $user->prenom = $request->prenom;
 
-        if ($request->filled('password')) {
+        // 🔒 Mise à jour du mot de passe uniquement si fourni
+        if (!empty($request->password)) {
             $user->password = Hash::make($request->password);
         }
 
         $user->save();
 
-        // ✅ Si l'utilisateur est un participant et a uploadé une nouvelle image
+        // 🖼️ Mise à jour de l'image si l'utilisateur est un participant
         if ($user->participant && $request->hasFile('image')) {
             $imagePath = $request->file('image')->store('cni_images', 'public');
             $user->participant->image_cni = $imagePath;
             $user->participant->save();
         }
 
-        // 🔁 Reconnecter l'utilisateur avec les infos mises à jour
+        // 🔁 Reconnexion de l'utilisateur pour que les données soient mises à jour
         auth()->login($user);
 
         return redirect()->route('participant.profile.edit')->with('success', 'Profil mis à jour avec succès.');
