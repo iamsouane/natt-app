@@ -22,6 +22,7 @@ class ProfileController extends Controller
             'nom' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
             'password' => 'nullable|string|min:8|confirmed',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         $user->nom = $request->nom;
@@ -33,7 +34,14 @@ class ProfileController extends Controller
 
         $user->save();
 
-        // 🔁 Mettre à jour l'utilisateur dans la session
+        // ✅ Si l'utilisateur est un participant et a uploadé une nouvelle image
+        if ($user->participant && $request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('cni_images', 'public');
+            $user->participant->image_cni = $imagePath;
+            $user->participant->save();
+        }
+
+        // 🔁 Reconnecter l'utilisateur avec les infos mises à jour
         auth()->login($user);
 
         return redirect()->route('participant.profile.edit')->with('success', 'Profil mis à jour avec succès.');

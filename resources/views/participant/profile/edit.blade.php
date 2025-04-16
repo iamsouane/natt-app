@@ -10,7 +10,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('participant.profile.update') }}">
+    <form method="POST" action="{{ route('participant.profile.update') }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -34,7 +34,19 @@
             <input type="password" name="password_confirmation" class="form-control">
         </div>
 
-        <button type="submit" class="btn btn-primary mt-3">Enregistrer</button>
+        <div class="form-group mt-3">
+            <label for="image">Image de profil / CNI</label>
+            <input type="file" name="image" class="form-control-file">
+
+            @if($user->participant && $user->participant->image_cni)
+                <div class="mt-2">
+                    <p>Image actuelle :</p>
+                    <img src="{{ asset('storage/' . $user->participant->image_cni) }}" alt="Image actuelle" class="img-thumbnail" style="max-height: 150px;">
+                </div>
+            @endif
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-4">Enregistrer</button>
     </form>
 </div>
 @endsection

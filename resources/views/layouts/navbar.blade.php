@@ -25,7 +25,12 @@
             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ Auth::user()->name }}</span>
-                <img class="img-profile rounded-circle" src="{{ asset('img/undraw_profile.svg') }}">
+                @php
+                    $image = Auth::user()->participant && Auth::user()->participant->image_cni 
+                        ? asset('storage/' . Auth::user()->participant->image_cni) 
+                        : asset('img/undraw_profile.svg');
+                @endphp
+                <img class="img-profile rounded-circle" src="{{ $image }}" width="40" height="40">
             </a>
             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                 aria-labelledby="userDropdown">
