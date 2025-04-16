@@ -46,4 +46,6 @@ Route::middleware(['auth', 'role:PARTICIPANT'])->prefix('participant')->group(fu
 
     Route::get('profile/edit', [ProfileController::class, 'edit'])->name('participant.profile.edit');
     Route::put('profile/update', [ProfileController::class, 'update'])->name('participant.profile.update');
+
+    Route::get('/participant/historique', [\App\Http\Controllers\HistoriqueController::class, 'index'])->name('participant.historique');
 });
