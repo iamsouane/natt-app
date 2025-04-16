@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TontineController;
 use App\Http\Controllers\TirageController;
 use App\Http\Controllers\CotisationController;
+use App\Http\Controllers\ProfileController;
 
 // Page d'accueil
 Route::get('/', [InscriptionController::class, 'home'])->name('home');
@@ -42,4 +43,7 @@ Route::middleware(['auth', 'role:PARTICIPANT'])->prefix('participant')->group(fu
     Route::get('tontines', [TontineController::class, 'voirPourParticipant'])->name('participant.index');
     Route::get('cotisations', [CotisationController::class, 'index'])->name('participant.cotisations.index');
     Route::get('/cotisations/{cotisation}', [CotisationController::class, 'show'])->name('participant.cotisations.show');
+
+    Route::get('profile/edit', [ProfileController::class, 'edit'])->name('participant.profile.edit');
+    Route::put('profile/update', [ProfileController::class, 'update'])->name('participant.profile.update');
 });
