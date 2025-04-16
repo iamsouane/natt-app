@@ -10,31 +10,26 @@
 
     <title>Natt-app - Connexion</title>
 
-    <!-- Custom fonts for this template -->
-    <link href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
-
-    <!-- Custom styles for this template -->
+    <!-- Fonts et styles -->
+    <link href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
     <link href="{{ asset('css/sb-admin-2.min.css') }}" rel="stylesheet">
 </head>
 
 <body class="bg-gradient-primary">
     <div class="container">
-        <!-- Outer Row -->
         <div class="row justify-content-center">
             <div class="col-xl-10 col-lg-12 col-md-9">
                 <div class="card o-hidden border-0 shadow-lg my-5">
                     <div class="card-body p-0">
-                        <!-- Nested Row within Card Body -->
                         <div class="row">
                             <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
                             <div class="col-lg-6">
                                 <div class="p-5">
                                     <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-4">De retour!</h1>
+                                        <h1 class="h4 text-gray-900 mb-4">De retour !</h1>
                                     </div>
 
-                                    <!-- Affichage du message d'erreur -->
                                     @if ($errors->has('login'))
                                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                                             {{ $errors->first('login') }}
@@ -46,25 +41,40 @@
 
                                     <form class="user" method="POST" action="{{ route('auth.store') }}">
                                         @csrf
+
                                         <div class="form-group">
-                                            <input type="email" name="email" class="form-control form-control-user" id="email"
-                                                aria-describedby="emailHelp" placeholder="Entrer votre adresse mail..."
-                                                value="{{ old('email') }}">
+                                            <label for="email" class="sr-only">Adresse e-mail</label>
+                                            <input type="email" name="email" id="email" class="form-control form-control-user @error('email') is-invalid @enderror"
+                                                placeholder="Entrer votre adresse mail..." value="{{ old('email') }}" required autofocus autocomplete="email">
+                                            @error('email')
+                                                <span class="invalid-feedback d-block" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
                                         </div>
+
                                         <div class="form-group">
-                                            <input type="password" name="password" class="form-control form-control-user" id="password"
-                                                placeholder="Entrer votre mot de passe">
+                                            <label for="password" class="sr-only">Mot de passe</label>
+                                            <input type="password" name="password" id="password" class="form-control form-control-user @error('password') is-invalid @enderror"
+                                                placeholder="Entrer votre mot de passe" required autocomplete="current-password">
+                                            @error('password')
+                                                <span class="invalid-feedback d-block" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
                                         </div>
+
                                         <button type="submit" class="btn btn-primary btn-user btn-block">
                                             Se connecter
                                         </button>
                                     </form>
+
                                     <hr>
                                     <div class="text-center">
-                                        <a class="small" href="forgot-password.html">Mot de passe oublié?</a>
+                                        <a class="small" href="{{ route('password.forgot') }}">Mot de passe oublié ?</a>
                                     </div>
                                     <div class="text-center">
-                                        <a class="small" href="{{ route('inscription.index') }}">Créer un compte!</a>
+                                        <a class="small" href="{{ route('inscription.index') }}">Créer un compte !</a>
                                     </div>
                                 </div>
                             </div>
@@ -75,14 +85,10 @@
         </div>
     </div>
 
-    <!-- Bootstrap core JavaScript -->
+    <!-- Scripts -->
     <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-
-    <!-- Core plugin JavaScript -->
     <script src="{{ asset('vendor/jquery-easing/jquery.easing.min.js') }}"></script>
-
-    <!-- Custom scripts for all pages -->
     <script src="{{ asset('js/sb-admin-2.min.js') }}"></script>
 </body>
 

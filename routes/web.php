@@ -22,16 +22,21 @@ Route::post('connexion', [AuthController::class, 'auth'])->name('auth.store');
 // Déconnexion
 Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 
+// 🔐 Réinitialisation du mot de passe (sans email)
+Route::get('forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.forgot');
+Route::post('forgot-password', [AuthController::class, 'verifyEmail'])->name('password.verifyEmail');
+Route::get('reset-password/{email}', [AuthController::class, 'showResetForm'])->name('password.reset');
+Route::post('reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+
 // Routes pour SUPER_ADMIN et GERANT
 Route::middleware(['auth', 'role:SUPER_ADMIN,GERANT'])->prefix('admin')->group(function () {
     Route::resource('tontines', TontineController::class);
     Route::resource('tirages', TirageController::class);
     Route::get('tirages', [TirageController::class, 'index'])->name('tirages.index');
 
-    
     // Route pour effectuer un tirage d'une séance donnée
     Route::get('tirages/{tontine}/{seance}/effectuer', [TirageController::class, 'effectuerTirage'])
-    ->name('tirages.effectuer');
+        ->name('tirages.effectuer');
 
     Route::post('tontines/sendEmails', [TontineController::class, 'sendEmails'])->name('tontines.sendEmails');
 });
