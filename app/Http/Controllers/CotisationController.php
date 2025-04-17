@@ -24,14 +24,26 @@ class CotisationController extends Controller
      */
     public function create(Tontine $tontine)
     {
-        $nbreCotisations = Cotisation::where('id_user', Auth::id())
+        $userId = Auth::id();
+
+        $nbreCotisations = Cotisation::where('id_user', $userId)
             ->where('id_tontine', $tontine->id)
             ->count();
 
-        // Empêche un nouveau participant de cotiser après la fin de la première séance
+        $participantsActuels = Cotisation::where('id_tontine', $tontine->id)
+            ->distinct('id_user')
+            ->count('id_user');
+
+        // Empêche un nouveau participant de cotiser si la première séance est terminée
         if ($nbreCotisations === 0 && !$tontine->canCotiser()) {
             return redirect()->route('participant.cotisations.index')
                 ->with('error', "Vous ne pouvez plus rejoindre cette tontine. La première séance est terminée.");
+        }
+
+        // Empêche un nouveau participant de cotiser si le nombre max de participants est atteint
+        if ($nbreCotisations === 0 && $participantsActuels >= $tontine->nbre_participant) {
+            return redirect()->route('participant.cotisations.index')
+                ->with('error', "Vous ne pouvez plus rejoindre cette tontine. Le nombre maximum de participants est atteint.");
         }
 
         if ($nbreCotisations >= $tontine->nbre_cotisation) {
@@ -51,14 +63,26 @@ class CotisationController extends Controller
      */
     public function store(Request $request, Tontine $tontine)
     {
-        $nbreCotisations = Cotisation::where('id_user', Auth::id())
+        $userId = Auth::id();
+
+        $nbreCotisations = Cotisation::where('id_user', $userId)
             ->where('id_tontine', $tontine->id)
             ->count();
 
-        // Empêche un nouveau participant de cotiser après la fin de la première séance
+        $participantsActuels = Cotisation::where('id_tontine', $tontine->id)
+            ->distinct('id_user')
+            ->count('id_user');
+
+        // Empêche un nouveau participant de cotiser après la première séance
         if ($nbreCotisations === 0 && !$tontine->canCotiser()) {
             return redirect()->route('participant.cotisations.index')
                 ->with('error', "Vous ne pouvez plus cotiser. La première séance est terminée.");
+        }
+
+        // Empêche un nouveau participant de cotiser si le nombre max est atteint
+        if ($nbreCotisations === 0 && $participantsActuels >= $tontine->nbre_participant) {
+            return redirect()->route('participant.cotisations.index')
+                ->with('error', "Vous ne pouvez plus cotiser. Le nombre maximum de participants est atteint.");
         }
 
         if ($nbreCotisations >= $tontine->nbre_cotisation) {
@@ -75,7 +99,7 @@ class CotisationController extends Controller
         }
 
         Cotisation::create([
-            'id_user' => Auth::id(),
+            'id_user' => $userId,
             'id_tontine' => $tontine->id,
             'montant' => $montant_partiel,
             'moyen_paiement' => $request->moyen_paiement,
