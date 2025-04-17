@@ -68,6 +68,7 @@
             </div>
 
             <button type="submit" class="btn btn-warning">Mettre à jour</button>
+            <a href="{{ url()->previous() }}" class="btn btn-secondary ml-2">Retour</a>
         </form>
 
         <!-- Modale pour afficher l'image -->

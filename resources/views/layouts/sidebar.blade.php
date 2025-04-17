@@ -109,13 +109,10 @@
 
         <!-- Nav Item - Déconnexion -->
         <li class="nav-item">
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit" class="nav-link btn btn-link" style="cursor: pointer;">
-                    <i class="fas fa-fw fa-sign-out-alt"></i>
-                    <span>Déconnexion</span>
-                </button>
-            </form>
+            <a class="nav-link" href="#" data-toggle="modal" data-target="#logoutModal">
+                <i class="fas fa-fw fa-sign-out-alt"></i>
+                <span>Déconnexion</span>
+            </a>
         </li>
     @endauth
 
@@ -127,3 +124,27 @@
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
     </div>
 </ul>
+
+<!-- Modale de déconnexion -->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logoutModalLabel">Êtes-vous sûr de vouloir vous déconnecter ?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Vous allez être déconnecté de votre session. Êtes-vous sûr de vouloir continuer ?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-primary">Déconnexion</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

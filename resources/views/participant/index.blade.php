@@ -12,12 +12,17 @@
                 <div class="col-md-6 mb-4">
                     <div class="card shadow">
                         <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0">{{ $tontine->libelle }}</h5>
+                            <!-- Lien autour du nom de la tontine -->
+                            <h5 class="mb-0">
+                                <a href="{{ route('participant.cotisations.index', $tontine) }}" class="text-decoration-none text-white">
+                                    {{ $tontine->libelle }}
+                                </a>
+                            </h5>
                         </div>
                         <div class="card-body">
                             <p><strong>Description :</strong> {{ $tontine->description }}</p>
                             <p><strong>Montant :</strong> {{ $tontine->montant_de_base }} FCFA</p>
-                            <p><strong>Participants :</strong> {{ $tontine->participants->count() }}</p>
+                            <p><strong>Participants :</strong> {{ $tontine->nbre_participant }}</p>
                             <p><strong>Date de début :</strong> {{ \Carbon\Carbon::parse($tontine->date_debut)->format('d/m/Y') }}</p>
                             <p><strong>Date de fin :</strong> {{ \Carbon\Carbon::parse($tontine->date_fin)->format('d/m/Y') }}</p>
                             
@@ -27,7 +32,7 @@
                                     @foreach ($tontine->images as $image)
                                         <img src="{{ asset('storage/tontines/' . $image->nom_image) }}" 
                                              alt="{{ $image->nom_image }}" 
-                                             style="width: 100px; height: auto; margin-bottom: 5px; cursor: pointer;"
+                                             style="width: 100px; height: auto; margin-bottom: 5px; cursor: pointer;" 
                                              data-toggle="modal" 
                                              data-target="#imageModal" 
                                              onclick="document.getElementById('modalImage').src='{{ asset('storage/tontines/' . $image->nom_image) }}'">
