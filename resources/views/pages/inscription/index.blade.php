@@ -125,7 +125,7 @@
                                 <div class="form-group">
                                     {{-- Champ cni --}}
                                     <input type="text" name="cni" class="form-control form-control-user" id="cni"
-    placeholder="Votre numero de carte d'identite nationale" value="{{old('cni')}}">
+                                        placeholder="Votre numero de carte d'identite nationale" value="{{old('cni')}}">
 
                                         @error('cni')
                                             <small style="color: red">{{ $message }}</small>
@@ -137,9 +137,6 @@
                                 </button>
                             </form>
                             <hr>
-                            <div class="text-center">
-                                <a class="small" href="forgot-password.html">Mot de passe oublié?</a>
-                            </div>
                             <div class="text-center">
                                 <a class="small" href="login.html">Already have an account? Login!</a>
                             </div>
