@@ -14,7 +14,8 @@ class Cotisation extends Model
         'id_tontine',
         'montant',
         'moyen_paiement',
-        'date_cotisation'
+        'date_cotisation',
+        'numero_seance'
     ];
 
     protected $casts = [

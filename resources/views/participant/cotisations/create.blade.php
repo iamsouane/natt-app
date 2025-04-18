@@ -8,8 +8,15 @@
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
 
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
     <form action="{{ route('participant.cotisations.store', $tontine->id) }}" method="POST">
         @csrf
+
+        <!-- Champ caché pour la séance -->
+        <input type="hidden" name="numero_seance" value="{{ $seanceActuelle }}">
 
         <!-- Champ Montant (Calculé automatiquement) -->
         <div class="mb-3">
