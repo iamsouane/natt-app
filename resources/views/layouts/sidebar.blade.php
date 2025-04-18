@@ -3,9 +3,9 @@
     <!-- Brand -->
     <a class="sidebar-brand d-flex align-items-center justify-content-center py-4" href="{{ route('home') }}">
         <div class="sidebar-brand-icon">
-            <img src="{{ asset('img/natt_app.png') }}" alt="Logo NATT-APP" style="width: 40px; height: 40px;" class="rounded-circle shadow-sm bg-white p-1">
+            <img src="{{ asset('img/natt_app.png') }}" alt="Logo NATT-APP" style="width: 60px; height: 60px;" class="rounded-circle shadow-sm bg-white p-1">
         </div>
-        <div class="sidebar-brand-text mx-3 fw-bold text-white">NATT-APP</div>
+        <div class="sidebar-brand-text mx-1 fw-bold text-white">NATT-APP</div>
     </a>
 
     <hr class="sidebar-divider my-0">

@@ -1,29 +1,176 @@
-/* resources/css/app.css */
+/* Palette de couleurs */
+:root {
+    --primary-color: #0077b6;
+    --secondary-color: #00b4d8;
+    --highlight-color: #90e0ef;
+    --dark-blue: #03045e;
+    --text-light: #caf0f8;
+    --background-light: #f8f9fa;
+    --text-dark: #343a40;
+    --danger-color: #d00000;
+    --success-color: #38b000;
+}
+
+/* Général */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: var(--background-light);
+    color: var(--text-dark);
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5 {
+    color: var(--dark-blue);
+    font-weight: bold;
+}
+
+/* Sidebar */
 .sidebar {
-    background: linear-gradient(135deg, #0077b6, #00b4d8);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     border-right: 1px solid #fff3;
-}
-
-.sidebar .nav-item .nav-link {
-    border-radius: 8px;
-    margin: 0 10px;
-    transition: all 0.2s ease-in-out;
-}
-
-.sidebar .nav-item .nav-link:hover {
-    background-color: #90e0ef;
-    color: #03045e !important;
-    transform: scale(1.02);
+    min-height: 100vh;
+    padding-top: 1rem;
 }
 
 .sidebar .sidebar-brand {
     font-weight: bold;
     font-size: 1.2rem;
     color: #fff;
+    text-align: center;
+    margin-bottom: 1.5rem;
 }
 
 .sidebar .sidebar-heading {
     text-transform: uppercase;
     font-size: 0.75rem;
-    color: #caf0f8;
+    color: var(--text-light);
+    padding: 0 1rem;
+}
+
+.sidebar .nav-item .nav-link {
+    border-radius: 8px;
+    margin: 0 10px;
+    color: #fff;
+    transition: all 0.2s ease-in-out;
+}
+
+.sidebar .nav-item .nav-link:hover {
+    background-color: var(--highlight-color);
+    color: var(--dark-blue) !important;
+    transform: scale(1.02);
+}
+
+/* Navbar */
+.navbar {
+    background-color: var(--primary-color);
+    padding: 0.75rem 1rem;
+}
+
+.navbar-brand, .navbar-nav .nav-link {
+    color: #fff;
+    font-weight: 500;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--highlight-color);
+}
+
+/* Boutons */
+.btn-primary {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    transform: scale(1.02);
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+    color: #fff;
+    border: none;
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    color: #fff;
+}
+
+/* Cartes */
+.card {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 119, 182, 0.1);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: var(--primary-color);
+    color: #fff;
+    font-weight: bold;
+    border-bottom: none;
+}
+
+/* Formulaires */
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 0.5rem;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 119, 182, 0.25);
+}
+
+/* Alertes */
+.alert-success {
+    background-color: var(--success-color);
+    color: #fff;
+    border-radius: 8px;
+    border: none;
+}
+
+.alert-danger {
+    background-color: var(--danger-color);
+    color: #fff;
+    border-radius: 8px;
+    border: none;
+}
+
+/* Pied de page */
+footer {
+    background-color: var(--primary-color);
+    color: #fff;
+    text-align: center;
+    padding: 1rem;
+    margin-top: 2rem;
+}
+
+/* Tableaux */
+.table thead {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.table-striped tbody tr:nth-child(odd) {
+    background-color: var(--highlight-color);
+}
+
+/* Liens */
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--secondary-color);
+    text-decoration: underline;
 }
