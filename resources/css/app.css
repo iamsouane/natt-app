@@ -1,0 +1,29 @@
+/* resources/css/app.css */
+.sidebar {
+    background: linear-gradient(135deg, #0077b6, #00b4d8);
+    border-right: 1px solid #fff3;
+}
+
+.sidebar .nav-item .nav-link {
+    border-radius: 8px;
+    margin: 0 10px;
+    transition: all 0.2s ease-in-out;
+}
+
+.sidebar .nav-item .nav-link:hover {
+    background-color: #90e0ef;
+    color: #03045e !important;
+    transform: scale(1.02);
+}
+
+.sidebar .sidebar-brand {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #fff;
+}
+
+.sidebar .sidebar-heading {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    color: #caf0f8;
+}
