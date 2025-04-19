@@ -19,6 +19,9 @@
     <!-- Vite assets -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <!-- AOS (Animate On Scroll) styles -->
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
     <!-- Custom styles for this template-->
     <!-- Suppression du lien sb-admin-2.css car nous utilisons Vite -->
     <link href="{{ asset('css/sb-admin-2.min.css') }}" rel="stylesheet">
@@ -98,6 +101,12 @@
 
     <!-- Custom scripts for all pages-->
     <script src="{{ asset('js/sb-admin-2.min.js') }}"></script>
+
+    <!-- AOS (Animate On Scroll) script -->
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        AOS.init();  // Initialiser AOS
+    </script>
 
 </body>
 
