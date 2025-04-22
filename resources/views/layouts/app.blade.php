@@ -25,6 +25,8 @@
     <!-- Custom styles for this template-->
     <!-- Suppression du lien sb-admin-2.css car nous utilisons Vite -->
     <link href="{{ asset('css/sb-admin-2.min.css') }}" rel="stylesheet">
+
+    @yield('styles') <!-- Ajoute ceci ici -->
 </head>
 
 <body id="page-top">
