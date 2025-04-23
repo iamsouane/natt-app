@@ -1,41 +1,53 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <h2 class="mb-4">Faire une cotisation pour {{ $tontine->libelle }}</h2>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h3 class="card-title text-center text-primary font-weight-bold mb-4">
+                        Cotisation – {{ $tontine->libelle }}
+                    </h3>
 
-    @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
+                    @if(session('error'))
+                        <div class="alert alert-danger shadow-sm">{{ session('error') }}</div>
+                    @endif
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+                    @if(session('success'))
+                        <div class="alert alert-success shadow-sm">{{ session('success') }}</div>
+                    @endif
 
-    <form action="{{ route('participant.cotisations.store', $tontine->id) }}" method="POST">
-        @csrf
+                    <form action="{{ route('participant.cotisations.store', $tontine->id) }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="numero_seance" value="{{ $seanceActuelle }}">
 
-        <!-- Champ caché pour la séance -->
-        <input type="hidden" name="numero_seance" value="{{ $seanceActuelle }}">
+                        <div class="form-group mb-4">
+                            <label for="montant" class="form-label font-weight-bold">Montant à cotiser</label>
+                            <input type="text" name="montant" class="form-control bg-light" value="{{ number_format($montant_partiel, 2) }} FCFA" readonly>
+                        </div>
 
-        <!-- Champ Montant (Calculé automatiquement) -->
-        <div class="mb-3">
-            <label for="montant" class="form-label">Montant à cotiser</label>
-            <input type="text" name="montant" class="form-control" value="{{ number_format($montant_partiel, 2) }} FCFA" readonly>
+                        <div class="form-group mb-4">
+                            <label for="moyen_paiement" class="form-label font-weight-bold">Moyen de paiement</label>
+                            <select name="moyen_paiement" class="form-control" required>
+                                <option value="ESPECES">Espèces</option>
+                                <option value="WAVE">Wave</option>
+                                <option value="OM">Orange Money</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ route('participant.cotisations.index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-success shadow-sm">
+                                <i class="fas fa-hand-holding-usd"></i> Cotiser
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-
-        <!-- Champ Moyen de Paiement -->
-        <div class="mb-3">
-            <label for="moyen_paiement" class="form-label">Moyen de paiement</label>
-            <select name="moyen_paiement" class="form-control" required>
-                <option value="ESPECES">Espèces</option>
-                <option value="WAVE">Wave</option>
-                <option value="OM">Orange Money</option>
-            </select>
-        </div>
-
-        <button type="submit" class="btn btn-success">Cotiser</button>
-        <a href="{{ route('participant.cotisations.index') }}" class="btn btn-secondary">Annuler</a>
-    </form>
+    </div>
 </div>
 @endsection
