@@ -182,7 +182,7 @@ class TontineController extends Controller
                     Mail::to($participant->email)->send(new RappelCotisation($participant, $tontine, 'confirmation'));
                 }
 
-                sleep(3); // Petite pause entre les envois
+                sleep(2); // Petite pause entre les envois
             }
         }
 
