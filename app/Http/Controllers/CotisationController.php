@@ -19,7 +19,7 @@ class CotisationController extends Controller
     public function create(Tontine $tontine)
     {
         $userId = Auth::id();
-        $seanceActuelle = $this->calculerSeanceActuelle($tontine);
+        $seanceActuelle = $tontine->getSeanceActuelle();
 
         $aCotise = Cotisation::where('id_tontine', $tontine->id)
                              ->where('id_user', $userId)
@@ -28,11 +28,12 @@ class CotisationController extends Controller
         $participantsActuels = Cotisation::where('id_tontine', $tontine->id)
                                          ->distinct('id_user')->count('id_user');
 
-        if ($participantsActuels >= $tontine->nbre_participant && !$aCotise) {
+        if (!$aCotise && $participantsActuels >= $tontine->nbre_participant) {
             return redirect()->route('participant.cotisations.index')
                 ->with('error', "Le nombre maximum de participants est atteint.");
         }
 
+        // Vérifie si l'utilisateur a déjà cotisé pour la séance actuelle
         $aCotisePourSeanceActuelle = Cotisation::where('id_tontine', $tontine->id)
             ->where('id_user', $userId)
             ->where('numero_seance', $seanceActuelle)
@@ -43,8 +44,9 @@ class CotisationController extends Controller
                 ->with('error', "Vous avez déjà cotisé pour la séance $seanceActuelle.");
         }
 
+        // Calcul du montant partiel et arrondi à l'excès
         $montant_partiel = $tontine->nbre_cotisation > 0 
-            ? $tontine->montant_de_base / $tontine->nbre_cotisation 
+            ? ceil(floatval($tontine->montant_de_base) / $tontine->nbre_cotisation)  // Conversion en float avant d'arrondir
             : 0;
 
         return view('participant.cotisations.create', compact('tontine', 'montant_partiel', 'seanceActuelle'));
@@ -53,7 +55,7 @@ class CotisationController extends Controller
     public function store(Request $request, Tontine $tontine)
     {
         $userId = Auth::id();
-        $seanceActuelle = $this->calculerSeanceActuelle($tontine);
+        $seanceActuelle = $tontine->getSeanceActuelle();
 
         $aCotise = Cotisation::where('id_tontine', $tontine->id)
                              ->where('id_user', $userId)
@@ -79,56 +81,20 @@ class CotisationController extends Controller
 
         if ($seanceActuelle > $tontine->nbre_cotisation) {
             return redirect()->route('participant.cotisations.index')
-                ->with('error', "Le nombre maximal de séances est atteint.");
+                ->with('error', "Toutes les séances de cotisation sont terminées.");
         }
 
-        $montant_partiel = $tontine->nbre_cotisation > 0 
-            ? $tontine->montant_de_base / $tontine->nbre_cotisation 
-            : 0;
-
+        // Enregistrement de la cotisation avec arrondi
         Cotisation::create([
-            'id_user' => $userId,
+            'id_user' => $request->user()->id,
             'id_tontine' => $tontine->id,
-            'montant' => $montant_partiel,
+            'montant' => ceil(floatval($request->montant)),  // Conversion en float avant d'arrondir
             'moyen_paiement' => $request->moyen_paiement,
-            'date_cotisation' => Carbon::now(),
+            'date_cotisation' => now(),
             'numero_seance' => $seanceActuelle,
         ]);
 
         return redirect()->route('participant.cotisations.index')
-            ->with('success', "Cotisation enregistrée pour la séance $seanceActuelle !");
-    }
-
-    /**
-     * Calcule la séance actuelle en respectant la contrainte du jour suivant
-     */
-    private function calculerSeanceActuelle(Tontine $tontine): int
-    {
-        $nbParticipants = $tontine->nbre_participant;
-
-        $cotisations = Cotisation::where('id_tontine', $tontine->id)
-            ->orderBy('numero_seance')
-            ->get()
-            ->groupBy('numero_seance');
-
-        if ($cotisations->isEmpty()) {
-            return 1;
-        }
-
-        $derniereSeance = $cotisations->keys()->last();
-        $cotisationsDerniereSeance = $cotisations[$derniereSeance];
-
-        if ($cotisationsDerniereSeance->count() < $nbParticipants) {
-            return $derniereSeance;
-        }
-
-        $derniereDateCotisation = $cotisationsDerniereSeance->max('date_cotisation');
-        $dateDerniereCotisation = Carbon::parse($derniereDateCotisation);
-
-        if ($dateDerniereCotisation->isToday()) {
-            return $derniereSeance;
-        }
-
-        return $derniereSeance + 1;
+            ->with('success', "Cotisation enregistrée pour la séance $seanceActuelle.");
     }
 }

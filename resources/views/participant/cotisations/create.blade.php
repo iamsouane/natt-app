@@ -24,7 +24,7 @@
 
                         <div class="form-group mb-4">
                             <label for="montant" class="form-label font-weight-bold">Montant à cotiser</label>
-                            <input type="text" name="montant" class="form-control bg-light" value="{{ number_format($montant_partiel, 2) }} FCFA" readonly>
+                            <input type="text" name="montant" class="form-control bg-light" value="{{ number_format($montant_partiel, 0) }} FCFA" readonly>
                         </div>
 
                         <div class="form-group mb-4">
