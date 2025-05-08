@@ -4,6 +4,25 @@
 <div class="container mt-5">
     <h2 class="mb-4 text-center font-weight-bold">🎯 Tontines disponibles</h2>
 
+    {{-- Notifications de succès ou d'erreur --}}
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle mr-2"></i> {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Fermer">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle mr-2"></i> {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Fermer">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
     @if($tontines->isEmpty())
         <div class="alert alert-info text-center">
             <i class="fas fa-info-circle"></i> Aucune tontine disponible pour le moment.
@@ -44,6 +63,18 @@
                                     @endforeach
                                 </div>
                             @endif
+
+                            {{-- Bouton pour les gérants --}}
+                            @auth
+                                @if($tontine->estGerant(auth()->id()))
+                                    <form action="{{ route('participant.tontines.sendMailsGerant', $tontine->id) }}" method="POST" class="mt-3">
+                                        @csrf
+                                        <button type="submit" class="btn btn-warning btn-sm">
+                                            <i class="fas fa-envelope"></i> Envoyer les emails de rappel
+                                        </button>
+                                    </form>
+                                @endif
+                            @endauth
                         </div>
                     </div>
                 </div>

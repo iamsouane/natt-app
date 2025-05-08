@@ -55,4 +55,8 @@ class User extends Authenticatable
         return $this->belongsToMany(Tontine::class, 'gerants_tontines', 'gerant_id', 'tontine_id');
     }
 
+    public function tontinesGerees()
+    {
+        return $this->belongsToMany(Tontine::class, 'gerants_tontines', 'gerant_id', 'tontine_id');
+    }
 }

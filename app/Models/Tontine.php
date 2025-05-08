@@ -176,4 +176,34 @@ class Tontine extends Model
         }
     }
 
+    public function participantsActifs()
+    {
+        return User::whereIn('id', function ($query) {
+            $query->select('id_user')
+                ->from('cotisations')
+                ->where('id_tontine', $this->id)
+                ->groupBy('id_user');
+        })->get();
+    }
+
+    public function gerants()
+    {
+        return $this->belongsToMany(User::class, 'gerants_tontines', 'tontine_id', 'gerant_id');
+    }
+
+    /**
+     * Vérifie si l'utilisateur connecté est gérant de cette tontine.
+     *
+     * @return bool
+     */
+    public function estGerant()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return false;
+        }
+
+        return $this->gerants()->where('gerant_id', $user->id)->exists();
+    }
 }

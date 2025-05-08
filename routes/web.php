@@ -23,7 +23,7 @@ Route::post('connexion', [AuthController::class, 'auth'])->name('auth.store');
 // Déconnexion
 Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 
-// 🔐 Réinitialisation du mot de passe (sans email)
+// Réinitialisation du mot de passe (sans email)
 Route::get('forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.forgot');
 Route::post('forgot-password', [AuthController::class, 'verifyEmail'])->name('password.verifyEmail');
 Route::get('reset-password/{email}', [AuthController::class, 'showResetForm'])->name('password.reset');
@@ -40,6 +40,8 @@ Route::middleware(['auth', 'role:SUPER_ADMIN,GERANT'])->prefix('admin')->group(f
         ->name('tirages.effectuer');
 
     Route::post('tontines/sendEmails', [TontineController::class, 'sendEmails'])->name('tontines.sendEmails');
+
+    Route::post('tontines/{tontine}/promouvoir', [TontineController::class, 'promouvoirGerant'])->name('tontines.promouvoir');
 });
 
 // Routes pour les participants
@@ -54,6 +56,10 @@ Route::middleware(['auth', 'role:PARTICIPANT'])->prefix('participant')->group(fu
     Route::put('profile/update', [ProfileController::class, 'update'])->name('participant.profile.update');
 
     Route::get('/participant/historique', [\App\Http\Controllers\HistoriqueController::class, 'index'])->name('participant.historique');
+
+    Route::post('tontines/{tontine}/send-mails-gerant', [TontineController::class, 'sendMailsGerant'])
+    ->name('participant.tontines.sendMailsGerant');
+
 });
 
 // Pages statiques

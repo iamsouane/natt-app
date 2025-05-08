@@ -9,9 +9,14 @@ return new class extends Migration {
     {
         Schema::create('gerants_tontines', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('gerant_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('tontine_id')->constrained('tontines')->onDelete('cascade');
+            $table->unsignedBigInteger('id_tontine');
+            $table->unsignedBigInteger('id_user');
             $table->timestamps();
+
+            $table->foreign('id_tontine')->references('id')->on('tontines')->onDelete('cascade');
+            $table->foreign('id_user')->references('id')->on('users')->onDelete('cascade');
+
+            $table->unique(['id_tontine', 'id_user']); // Évite les doublons
         });
     }
 

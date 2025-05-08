@@ -188,4 +188,54 @@ class TontineController extends Controller
 
         return redirect()->route('tontines.index')->with('success', 'Les emails ont été envoyés avec succès.');
     }
+
+    public function promouvoirGerant(Request $request, Tontine $tontine)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+
+        // Ajouter le user comme gérant de cette tontine (sans supprimer son rôle de participant)
+        $tontine->gerants()->syncWithoutDetaching([$user->id]);
+
+        return redirect()->back()->with('success', 'Participant promu gérant avec succès.');
+    }
+
+    public function sendMailsGerant($tontine_id)
+{
+    $tontine = Tontine::with(['participants.user', 'gerants'])->findOrFail($tontine_id);
+    $user = auth()->user();
+
+    // Vérifier que l'utilisateur est bien gérant de cette tontine
+    if (!$tontine->gerants->contains($user->id)) {
+        abort(403, "Vous n'êtes pas autorisé à envoyer des mails pour cette tontine.");
+    }
+
+    // Envoi des emails pour chaque participant
+    foreach ($tontine->participants as $participant) {
+        // Vérifier si le participant a déjà cotisé et si la cotisation est en retard
+        $cotisation = Cotisation::where('id_user', $participant->user->id)
+                                ->where('id_tontine', $tontine->id)
+                                ->first();
+
+        // Si la cotisation est en retard, envoyer un email de rappel
+        if (!$cotisation || $cotisation->seanceEnRetard()) {
+            Mail::to($participant->user->email)
+                ->send(new RappelCotisation($participant, $tontine, 'rappel'));
+        } else {
+            // Sinon, envoyer un email de confirmation
+            Mail::to($participant->user->email)
+                ->send(new RappelCotisation($participant, $tontine, 'confirmation'));
+        }
+
+        // Petite pause entre les envois pour éviter d'envoyer trop rapidement
+        sleep(2);
+    }
+
+    // Retour à la page de gestion des tontines avec un message de succès
+    return redirect()->route('participant.index')->with('success', 'Les emails ont été envoyés avec succès.');
+}
+
 }
