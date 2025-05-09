@@ -9,7 +9,6 @@ use App\Models\Image;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\TontineEmails;
 use App\Mail\RappelCotisation;
 use Illuminate\Support\Facades\Storage;
 
@@ -50,8 +49,29 @@ class TontineController extends Controller
         $dateFin = Carbon::parse($request->date_fin);
         $duree = $dateDebut->diffInDays($dateFin);
 
+        if ($request->frequence === 'HEBDOMADAIRE' && $duree < 7) {
+            return back()->withErrors([
+                'frequence' => "Pour une fréquence HEBDOMADAIRE, la durée doit être d'au moins 7 jours."
+            ])->withInput();
+        }
+
         if ($duree < 30 && !in_array($request->frequence, ['JOURNALIERE', 'HEBDOMADAIRE'])) {
-            return redirect()->back()->withErrors(['frequence' => "Pour une durée inférieure à 30 jours, la fréquence doit être JOURNALIERE ou HEBDOMADAIRE."])->withInput();
+            return back()->withErrors([
+                'frequence' => "Pour une durée inférieure à 30 jours, la fréquence doit être JOURNALIÈRE ou HEBDOMADAIRE."
+            ])->withInput();
+        }
+
+        // Calcul du nombre de séances
+        $nbSeances = match ($request->frequence) {
+            'JOURNALIERE' => $duree + 1,
+            'HEBDOMADAIRE' => floor(($duree + 1) / 7),
+            'MENSUELLE' => $dateDebut->diffInMonths($dateFin) + 1,
+        };
+
+        if ($request->frequence === 'JOURNALIERE' && ($request->nbre_participant < 3 || $nbSeances < 4)) {
+            return back()->withErrors([
+                'date_fin' => "Pour une fréquence journalière, il faut au minimum 3 participants et une durée de 3 jours pour créer une tontine."
+            ])->withInput();
         }
 
         $nbreCotisation = intval($request->montant_total / $request->montant_de_base);
@@ -68,7 +88,6 @@ class TontineController extends Controller
             'nbre_cotisation' => $nbreCotisation,
         ]);
 
-        // Gérer l'upload des images
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $img) {
                 $path = $img->store('tontines', 'public');
@@ -111,13 +130,32 @@ class TontineController extends Controller
         $dateFin = Carbon::parse($request->date_fin);
         $duree = $dateDebut->diffInDays($dateFin);
 
+        if ($request->frequence === 'HEBDOMADAIRE' && $duree < 7) {
+            return back()->withErrors([
+                'frequence' => "Pour une fréquence HEBDOMADAIRE, la durée doit être d'au moins 7 jours."
+            ])->withInput();
+        }
+
         if ($duree < 30 && !in_array($request->frequence, ['JOURNALIERE', 'HEBDOMADAIRE'])) {
-            return redirect()->back()->withErrors(['frequence' => "Pour une durée inférieure à 30 jours, la fréquence doit être JOURNALIERE ou HEBDOMADAIRE."])->withInput();
+            return back()->withErrors([
+                'frequence' => "Pour une durée inférieure à 30 jours, la fréquence doit être JOURNALIÈRE ou HEBDOMADAIRE."
+            ])->withInput();
+        }
+
+        $nbSeances = match ($request->frequence) {
+            'JOURNALIERE' => $duree + 1,
+            'HEBDOMADAIRE' => floor(($duree + 1) / 7),
+            'MENSUELLE' => $dateDebut->diffInMonths($dateFin) + 1,
+        };
+
+        if ($nbSeances < $request->nbre_participant) {
+            return back()->withErrors([
+                'date_fin' => "La durée choisie ne permet pas d'organiser au moins autant de séances que de participants ({$nbSeances} séances possibles pour {$request->nbre_participant} participants)."
+            ])->withInput();
         }
 
         $nbreCotisation = intval($request->montant_total / $request->montant_de_base);
 
-        // Mise à jour des informations de la tontine
         $tontine->update([
             'frequence' => $request->frequence,
             'libelle' => $request->libelle,
@@ -130,15 +168,12 @@ class TontineController extends Controller
             'nbre_cotisation' => $nbreCotisation,
         ]);
 
-        // Supprimer les anciennes images et les remplacer
         if ($request->hasFile('images')) {
-            // Supprimer les anciennes images
             foreach ($tontine->images as $image) {
                 Storage::disk('public')->delete($image->chemin_image);
                 $image->delete();
             }
 
-            // Ajouter de nouvelles images
             foreach ($request->file('images') as $img) {
                 $path = $img->store('tontines', 'public');
                 Image::create([
@@ -154,7 +189,6 @@ class TontineController extends Controller
 
     public function destroy(Tontine $tontine)
     {
-        // Supprimer les images liées
         foreach ($tontine->images as $image) {
             Storage::disk('public')->delete($image->chemin_image);
             $image->delete();
@@ -172,17 +206,20 @@ class TontineController extends Controller
 
         foreach ($participants as $participant) {
             foreach ($tontines as $tontine) {
+                $nbTirages = $tontine->tirages()->count();
+                if ($nbTirages >= $tontine->nbre_cotisation) {
+                    Mail::to($participant->email)->send(new RappelCotisation($participant, $tontine, 'terminee'));
+                    continue;
+                }
+
                 $cotisation = Cotisation::where('id_user', $participant->id)
                     ->where('id_tontine', $tontine->id)
                     ->first();
 
-                if (!$cotisation || $cotisation->seanceEnRetard()) {
-                    Mail::to($participant->email)->send(new RappelCotisation($participant, $tontine, 'rappel'));
-                } else {
-                    Mail::to($participant->email)->send(new RappelCotisation($participant, $tontine, 'confirmation'));
-                }
+                $type = (!$cotisation || $cotisation->seanceEnRetard()) ? 'rappel' : 'confirmation';
+                Mail::to($participant->email)->send(new RappelCotisation($participant, $tontine, $type));
 
-                sleep(2); // Petite pause entre les envois
+                sleep(2);
             }
         }
 
@@ -196,46 +233,44 @@ class TontineController extends Controller
         ]);
 
         $user = User::findOrFail($request->user_id);
-
-        // Ajouter le user comme gérant de cette tontine (sans supprimer son rôle de participant)
         $tontine->gerants()->syncWithoutDetaching([$user->id]);
 
         return redirect()->back()->with('success', 'Participant promu gérant avec succès.');
     }
 
     public function sendMailsGerant($tontine_id)
-{
-    $tontine = Tontine::with(['participants.user', 'gerants'])->findOrFail($tontine_id);
-    $user = auth()->user();
+    {
+        $tontine = Tontine::with(['participants.user', 'gerants'])->findOrFail($tontine_id);
+        $user = auth()->user();
 
-    // Vérifier que l'utilisateur est bien gérant de cette tontine
-    if (!$tontine->gerants->contains($user->id)) {
-        abort(403, "Vous n'êtes pas autorisé à envoyer des mails pour cette tontine.");
-    }
-
-    // Envoi des emails pour chaque participant
-    foreach ($tontine->participants as $participant) {
-        // Vérifier si le participant a déjà cotisé et si la cotisation est en retard
-        $cotisation = Cotisation::where('id_user', $participant->user->id)
-                                ->where('id_tontine', $tontine->id)
-                                ->first();
-
-        // Si la cotisation est en retard, envoyer un email de rappel
-        if (!$cotisation || $cotisation->seanceEnRetard()) {
-            Mail::to($participant->user->email)
-                ->send(new RappelCotisation($participant, $tontine, 'rappel'));
-        } else {
-            // Sinon, envoyer un email de confirmation
-            Mail::to($participant->user->email)
-                ->send(new RappelCotisation($participant, $tontine, 'confirmation'));
+        if (!$tontine->gerants->contains($user->id)) {
+            abort(403, "Vous n'êtes pas autorisé à envoyer des mails pour cette tontine.");
         }
 
-        // Petite pause entre les envois pour éviter d'envoyer trop rapidement
-        sleep(2);
+        $nbTirages = $tontine->tirages()->count();
+        $estTerminee = $nbTirages >= $tontine->nbre_cotisation;
+
+        foreach ($tontine->participants as $participant) {
+            $type = 'confirmation';
+
+            if ($estTerminee) {
+                $type = 'terminee';
+            } else {
+                $cotisation = Cotisation::where('id_user', $participant->user->id)
+                    ->where('id_tontine', $tontine->id)
+                    ->first();
+
+                if (!$cotisation || $cotisation->seanceEnRetard()) {
+                    $type = 'rappel';
+                }
+            }
+
+            Mail::to($participant->user->email)
+                ->send(new RappelCotisation($participant, $tontine, $type));
+
+            sleep(2);
+        }
+
+        return redirect()->route('tontines.show', $tontine->id)->with('success', 'Les emails ont été envoyés avec succès.');
     }
-
-    // Retour à la page de gestion des tontines avec un message de succès
-    return redirect()->route('participant.index')->with('success', 'Les emails ont été envoyés avec succès.');
-}
-
 }

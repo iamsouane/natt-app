@@ -54,6 +54,11 @@ class Tontine extends Model
         return $this->hasMany(Image::class, 'id_tontine');
     }
 
+    public function tirages()
+    {
+        return $this->hasMany(Tirage::class, 'id_tontine');
+    }
+
     /**
      * Calcule le nombre total de cotisations en fonction de la durée et de la fréquence.
      */
@@ -206,4 +211,12 @@ class Tontine extends Model
 
         return $this->gerants()->where('gerant_id', $user->id)->exists();
     }
+
+
+    public function estTerminee()
+    {
+        $nbCotisationsEffectuees = $this->cotisations()->distinct('seance')->count('seance');
+        return $nbCotisationsEffectuees >= $this->nbre_cotisation;
+    }
+
 }
