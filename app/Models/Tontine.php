@@ -215,7 +215,7 @@ class Tontine extends Model
 
     public function estTerminee()
     {
-        $nbCotisationsEffectuees = $this->cotisations()->distinct('seance')->count('seance');
+        $nbCotisationsEffectuees = $this->cotisations()->distinct('numero_seance')->count('numero_seance');
         return $nbCotisationsEffectuees >= $this->nbre_cotisation;
     }
 
