@@ -207,7 +207,7 @@
                                             <select name="user_id" class="form-control" required>
                                                 <option value="">-- Sélectionner un participant --</option>
                                                 @foreach($tontine->participantsActifs() as $participant)
-                                                    <option value="{{ $participant->id }}">{{ $participant->name }} ({{ $participant->email }})</option>
+                                                    <option value="{{ $participant->id }}">{{ $participant->prenom }} {{ $participant->nom }}</option>
                                                 @endforeach
                                             </select>
                                         </div>

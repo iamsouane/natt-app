@@ -192,9 +192,9 @@ class Tontine extends Model
     }
 
     public function gerants()
-    {
-        return $this->belongsToMany(User::class, 'gerants_tontines', 'tontine_id', 'gerant_id');
-    }
+{
+    return $this->belongsToMany(User::class, 'gerants_tontines', 'id_tontine', 'id_user');
+}
 
     /**
      * Vérifie si l'utilisateur connecté est gérant de cette tontine.
@@ -218,5 +218,73 @@ class Tontine extends Model
         $nbCotisationsEffectuees = $this->cotisations()->distinct('numero_seance')->count('numero_seance');
         return $nbCotisationsEffectuees >= $this->nbre_cotisation;
     }
+
+    /**
+     * Vérifie si la tontine est active (en cours)
+     *
+     * @return bool
+     */
+    public function estActive()
+    {
+        $now = Carbon::now();
+        $dateDebut = Carbon::parse($this->date_debut);
+        $dateFin = Carbon::parse($this->date_fin);
+        
+        // La tontine est active si:
+        // 1. La date actuelle est après la date de début
+        // 2. La date actuelle est avant la date de fin
+        // 3. Le nombre de tirages effectués est inférieur au nombre de cotisations prévues
+        return $now->greaterThanOrEqualTo($dateDebut) && 
+            $now->lessThanOrEqualTo($dateFin) && 
+            !$this->estTerminee();
+    }
+
+    /**
+     * Calcule le pourcentage de progression de la tontine
+     *
+     * @return float
+    */
+    public function progression()
+    {
+        if ($this->nbre_cotisation == 0) {
+            return 0;
+        }
+
+        $cotisationsEffectuees = $this->cotisations()
+            ->distinct('numero_seance')
+            ->count('numero_seance');
+
+        return ($cotisationsEffectuees / $this->nbre_cotisation) * 100;
+    }
+    
+
+public function getEstActiveAttribute()
+{
+    return now()->between($this->date_debut, $this->date_fin) && $this->progression < 100;
+}
+
+
+public function getProgressionAttribute()
+{
+    $nombreParticipants = $this->participants()->count();
+    $totalCotisations = $this->cotisations()->count();
+
+    if ($nombreParticipants === 0) {
+        return 0;
+    }
+
+    // Nombre de séances = nombre de gagnants
+    $nombreSeances = $this->tirages()->count();
+
+    // Total cotisations attendues = participants * séances
+    $totalAttendu = $nombreParticipants * $nombreSeances;
+
+    if ($totalAttendu === 0) {
+        return 0;
+    }
+
+    return round(($totalCotisations / $totalAttendu) * 100);
+}
+
 
 }
