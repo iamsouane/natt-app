@@ -72,7 +72,7 @@
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                 Tontines Actives</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ $tontines->where('estActive', true)->count() }}
+                                {{ $tontines->where('est_active', true)->count() }}
                             </div>
                         </div>
                         <div class="col-auto">
@@ -169,18 +169,25 @@
     @else
         <div class="row">
             @foreach($tontines as $tontine)
+                @php
+                    $isActive = $tontine->est_active;
+                    $progression = $tontine->progression;
+                    $seancesEffectuees = $tontine->seances_effectuees;
+                    $seancesTotales = $tontine->seances_totales;
+                @endphp
+
                 <div class="col-xl-4 col-md-6 mb-4">
-                    <div class="card border-left-{{ $tontine->estActive ? 'success' : 'secondary' }} shadow-sm h-100">
+                    <div class="card border-left-{{ $isActive ? 'success' : 'secondary' }} shadow-sm h-100">
                         <div class="card-header bg-white py-3 border-bottom-0">
                             <div class="d-flex justify-content-between align-items-center">
                                 <a href="{{ route('participant.cotisations.index', $tontine) }}" class="text-decoration-none">
-                                    <h5 class="font-weight-bold text-{{ $tontine->estActive ? 'primary' : 'secondary' }} mb-0">
+                                    <h5 class="font-weight-bold text-{{ $isActive ? 'primary' : 'secondary' }} mb-0">
                                         <i class="fas fa-handshake mr-2"></i>{{ $tontine->libelle }}
                                     </h5>
                                 </a>
                                 <div>
-                                    <span class="badge badge-pill badge-{{ $tontine->estActive ? 'success' : 'secondary' }}">
-                                        {{ $tontine->estActive ? 'Active' : 'Terminée' }}
+                                    <span class="badge badge-pill badge-{{ $isActive ? 'success' : 'secondary' }}">
+                                        {{ $isActive ? 'Active' : 'Terminée' }}
                                     </span>
                                     @if($tontine->gerants->contains(auth()->id()))
                                         <span class="badge badge-pill badge-warning ml-1">Gérant</span>
@@ -198,8 +205,7 @@
                                 </div>
                                 <div class="detail-item mb-2">
                                     <i class="fas fa-users text-info mr-2"></i>
-                                    <span>Participants: <strong>{{ $tontine->participants->count() }}/{{ $tontine->nbre_participant }}</strong></span>
-                                </div>
+                                    <span>Participants: <strong>{{ min($tontine->participants_count, $tontine->nbre_participant) }}/{{ $tontine->nbre_participant }}</strong></span>                                </div>
                                 <div class="detail-item mb-2">
                                     <i class="fas fa-calendar-alt text-warning mr-2"></i>
                                     <span>Période: 
@@ -212,22 +218,25 @@
                                     <span>Progression: 
                                         <div class="progress mt-1" style="height: 8px;">
                                             <div class="progress-bar bg-primary" role="progressbar" 
-                                                 style="width: {{ $tontine->progression }}%;" 
-                                                 aria-valuenow="{{ $tontine->progression }}" 
+                                                 style="width: {{ $progression }}%;" 
+                                                 aria-valuenow="{{ $progression }}" 
                                                  aria-valuemin="0" 
                                                  aria-valuemax="100"></div>
                                         </div>
-                                        <small class="text-muted float-right">{{ round($tontine->progression, 1) }}%</small>
+                                        <small class="text-muted float-right">
+                                            {{ round($progression, 1) }}% 
+                                            ({{ $seancesEffectuees }}/{{ $seancesTotales }} séances)
+                                        </small>
                                     </span>
                                 </div>
                                 
-                                @if($tontine->estActive)
+                                @if($isActive)
                                 <div class="detail-item">
                                     <i class="fas fa-clock text-danger mr-2"></i>
                                     <span>Prochaine cotisation: 
                                         <strong>
                                             @if($tontine->date_prochaine_cotisation)
-                                                {{ $tontine->date_prochaine_cotisation->format('d/m/Y') }}
+                                                {{ Carbon::parse($tontine->date_prochaine_cotisation)->format('d/m/Y') }}
                                             @else
                                                 Non définie
                                             @endif
@@ -238,36 +247,32 @@
                             </div>
 
                             @if($tontine->images->isNotEmpty())
-    <div class="tontine-images mb-3">
-        <p class="small text-muted mb-1"><i class="fas fa-image mr-1"></i> Documents:</p>
-        <div class="d-flex flex-wrap">
-            @foreach ($tontine->images->take(3) as $image)
-                @if(Storage::disk('public')->exists($image->chemin_image))
-                    <a href="{{ asset('storage/'.$image->chemin_image) }}" 
-                       data-fancybox="gallery-{{ $tontine->id }}" 
-                       data-caption="{{ $tontine->libelle }}"
-                       class="mr-2 mb-2">
-                        <img src="{{ asset('storage/'.$image->chemin_image) }}"
-                             alt="{{ $image->nom_image }}"
-                             class="img-thumbnail"
-                             style="width: 80px; height: 80px; object-fit: cover;">
-                    </a>
-                @else
-                    <div class="mr-2 mb-2 text-danger">
-                        Image non trouvée: {{ $image->chemin_image }}
-                    </div>
-                @endif
-            @endforeach
-            @if($tontine->images->count() > 3)
-                <a href="#" class="d-flex align-items-center justify-content-center mr-2 mb-2" 
-                   style="width: 80px; height: 80px; background: #f8f9fa; border: 1px dashed #dee2e6; border-radius: 4px;"
-                   data-toggle="tooltip" title="Voir plus d'images">
-                    <span class="text-muted">+{{ $tontine->images->count() - 3 }}</span>
-                </a>
-            @endif
-        </div>
-    </div>
-@endif
+                                <div class="tontine-images mb-3">
+                                    <p class="small text-muted mb-1"><i class="fas fa-image mr-1"></i> Documents:</p>
+                                    <div class="d-flex flex-wrap">
+                                        @foreach ($tontine->images->take(3) as $image)
+                                            @if(Storage::disk('public')->exists($image->chemin_image))
+                                                <a href="{{ asset('storage/'.$image->chemin_image) }}" 
+                                                   data-fancybox="gallery-{{ $tontine->id }}" 
+                                                   data-caption="{{ $tontine->libelle }}"
+                                                   class="mr-2 mb-2">
+                                                    <img src="{{ asset('storage/'.$image->chemin_image) }}"
+                                                         alt="{{ $image->nom_image }}"
+                                                         class="img-thumbnail"
+                                                         style="width: 80px; height: 80px; object-fit: cover;">
+                                                </a>
+                                            @endif
+                                        @endforeach
+                                        @if($tontine->images->count() > 3)
+                                            <a href="#" class="d-flex align-items-center justify-content-center mr-2 mb-2" 
+                                               style="width: 80px; height: 80px; background: #f8f9fa; border: 1px dashed #dee2e6; border-radius: 4px;"
+                                               data-toggle="tooltip" title="Voir plus d'images">
+                                                <span class="text-muted">+{{ $tontine->images->count() - 3 }}</span>
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                         <div class="card-footer bg-white border-top-0 pt-0">
                             <div class="d-flex justify-content-between align-items-center">
@@ -363,6 +368,10 @@
     .progress {
         border-radius: 4px;
         background-color: #f8f9fa;
+    }
+    
+    .progress-bar {
+        transition: width 0.6s ease;
     }
 
     .alert-icon {

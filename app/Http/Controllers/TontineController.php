@@ -22,7 +22,38 @@ class TontineController extends Controller
 
     public function voirPourParticipant()
     {
-        $tontines = Tontine::with('participants')->get();
+        $tontines = Tontine::withCount('participants')
+            ->with(['cotisations', 'tirages'])
+            ->get()
+            ->map(function ($tontine) {
+                $dateDebut = Carbon::parse($tontine->date_debut);
+                $dateFin = Carbon::parse($tontine->date_fin);
+                
+                // Calcul du nombre total de séances prévues
+                $nbSeancesTotal = match ($tontine->frequence) {
+                    'JOURNALIERE' => $dateDebut->diffInDays($dateFin) + 1,
+                    'HEBDOMADAIRE' => floor(($dateDebut->diffInDays($dateFin) + 1) / 7),
+                    'MENSUELLE' => $dateDebut->diffInMonths($dateFin) + 1,
+                };
+
+                // Nombre de séances effectuées (basé sur les tirages)
+                $nbSeancesEffectuees = $tontine->tirages->count();
+                
+                // Calcul de la progression
+                $tontine->progression = $nbSeancesTotal > 0 
+                    ? ($nbSeancesEffectuees / $nbSeancesTotal) * 100 
+                    : 0;
+                
+                // Déterminer si la tontine est active
+                $tontine->estActive = $nbSeancesEffectuees < $nbSeancesTotal;
+                
+                // Ajout des données pour la vue
+                $tontine->seances_totales = $nbSeancesTotal;
+                $tontine->seances_effectuees = $nbSeancesEffectuees;
+                
+                return $tontine;
+            });
+
         return view('participant.index', compact('tontines'));
     }
 

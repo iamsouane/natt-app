@@ -5,6 +5,17 @@
 @section('content')
 <div class="container py-5" data-aos="fade-up">
     <!-- Header Section -->
+    @if(session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+    @endif
+    @if(session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+    @endif
+
     <div class="text-center mb-5">
         <h1 class="display-4 font-weight-bold text-primary mb-3">Contactez notre équipe</h1>
         <div class="divider mx-auto bg-primary mb-4"></div>
@@ -87,29 +98,37 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-5">
                     <h3 class="font-weight-bold text-primary mb-4">Envoyez-nous un message</h3>
-                    <form>
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="name">Nom complet</label>
-                                <input type="text" class="form-control" id="name" placeholder="Votre nom">
+                    
+                    @auth
+                        <form method="POST" action="{{ route('contact.send') }}" id="contact-form">
+                            @csrf
+                            <div class="form-group">
+                                <label for="subject">Sujet</label>
+                                <input type="text" class="form-control" id="subject" name="subject" placeholder="Objet du message" required>
                             </div>
-                            <div class="form-group col-md-6">
-                                <label for="email">Adresse email</label>
-                                <input type="email" class="form-control" id="email" placeholder="Votre email">
+                            <div class="form-group">
+                                <label for="message">Message</label>
+                                <textarea class="form-control" id="message" name="message" rows="5" placeholder="Votre message..." required></textarea>
                             </div>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Le message sera envoyé depuis votre adresse email : <strong>{{ auth()->user()->email }}</strong>
+                            </div>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-paper-plane mr-2"></i> Envoyer le message
+                            </button>
+                        </form>
+                    @else
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Vous devez <a href="{{ route('auth.create') }}" class="alert-link">vous connecter</a> pour pouvoir envoyer un message à l'administrateur.
                         </div>
-                        <div class="form-group">
-                            <label for="subject">Sujet</label>
-                            <input type="text" class="form-control" id="subject" placeholder="Objet du message">
+                        <div class="text-center mt-4">
+                            <a href="{{ route('auth.create') }}" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt mr-2"></i> Se connecter
+                            </a>
                         </div>
-                        <div class="form-group">
-                            <label for="message">Message</label>
-                            <textarea class="form-control" id="message" rows="5" placeholder="Votre message..."></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary px-4">
-                            <i class="fas fa-paper-plane mr-2"></i> Envoyer le message
-                        </button>
-                    </form>
+                    @endauth
                 </div>
             </div>
         </div>
@@ -196,6 +215,18 @@
             easing: 'ease-in-out',
             once: true
         });
+
+        // Empêcher la soumission si non connecté (sécurité supplémentaire)
+        const contactForm = document.getElementById('contact-form');
+        if (contactForm) {
+            contactForm.addEventListener('submit', function(e) {
+                @guest
+                    e.preventDefault();
+                    alert('Veuillez vous connecter pour envoyer un message');
+                    window.location.href = "{{ route('auth.create') }}";
+                @endguest
+            });
+        }
     });
 </script>
 @endsection

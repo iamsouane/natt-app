@@ -8,6 +8,7 @@ use App\Http\Controllers\TirageController;
 use App\Http\Controllers\CotisationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StaticPageController;
+use App\Http\Controllers\ContactController;
 
 // Page d'accueil
 Route::get('/', [InscriptionController::class, 'home'])->name('home');
@@ -66,3 +67,8 @@ Route::middleware(['auth', 'role:PARTICIPANT'])->prefix('participant')->group(fu
 Route::get('/about', [StaticPageController::class, 'about'])->name('about');
 Route::get('/contact', [StaticPageController::class, 'contact'])->name('contact');
 Route::get('/politique', [StaticPageController::class, 'politique'])->name('politique');
+
+// Reclamation
+Route::middleware('auth')->group(function () {
+    Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
+});

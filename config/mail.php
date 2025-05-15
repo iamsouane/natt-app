@@ -94,6 +94,16 @@ return [
                 'postmark',
             ],
         ],
+        'gmail' => [
+            'transport' => 'smtp',
+            'host' => 'smtp.gmail.com',
+            'port' => 587,
+            'encryption' => 'tls',
+            'username' => 'ismailasouane08@gmail.com',
+            'password' => 'jhsr nrhx yneo hsjw',
+            'timeout' => null,
+            'auth_mode' => null,
+        ],
     ],
 
     /*

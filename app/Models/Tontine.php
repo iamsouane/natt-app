@@ -21,6 +21,8 @@ class Tontine extends Model
         'nbre_cotisation',
     ];
 
+    protected $appends = ['progression', 'est_active', 'seances_effectuees', 'seances_totales, participants_count'];
+
     protected static function boot()
     {
         parent::boot();
@@ -36,8 +38,6 @@ class Tontine extends Model
 
     /**
      * Relation avec les cotisations.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function cotisations(): HasMany
     {
@@ -59,6 +59,11 @@ class Tontine extends Model
         return $this->hasMany(Tirage::class, 'id_tontine');
     }
 
+    public function gerants()
+    {
+        return $this->belongsToMany(User::class, 'gerants_tontines', 'id_tontine', 'id_user');
+    }
+
     /**
      * Calcule le nombre total de cotisations en fonction de la durée et de la fréquence.
      */
@@ -71,7 +76,7 @@ class Tontine extends Model
             throw new \Exception("La date de fin doit être postérieure à la date de début.");
         }
 
-        $duree = $dateDebut->diffInDays($dateFin); // Durée en jours
+        $duree = $dateDebut->diffInDays($dateFin);
 
         switch ($this->frequence) {
             case 'JOURNALIERE':
@@ -84,10 +89,10 @@ class Tontine extends Model
                 $nbreCotisation = ceil($duree / 30);
                 break;
             default:
-                throw new \Exception("Fréquence invalide. Elle doit être JOURNALIERE, HEBDOMADAIRE ou MENSUELLE.");
+                throw new \Exception("Fréquence invalide.");
         }
 
-        $this->nbre_cotisation = max(0, $nbreCotisation); // Empêcher les valeurs négatives
+        $this->nbre_cotisation = max(0, $nbreCotisation);
     }
 
     /**
@@ -124,23 +129,16 @@ class Tontine extends Model
 
     /**
      * Récupère la prochaine date de cotisation
-     *
-     * @return Carbon|null
      */
     public function getDateProchaineCotisationAttribute()
     {
-        // Dernière cotisation du participant
         $dernierPaiement = $this->cotisations()->latest('date_cotisation')->first();
-
-        // Si aucune cotisation, la prochaine date est la date de début de la tontine
         $prochaineCotisation = $dernierPaiement ? $dernierPaiement->date_cotisation : $this->date_debut;
 
-        // Vérifier si la date est définie avant d'appliquer les calculs
         if (!$prochaineCotisation) {
             return null;
         }
 
-        // Calculer la prochaine cotisation en fonction de la fréquence
         switch ($this->frequence) {
             case 'JOURNALIERE':
                 return Carbon::parse($prochaineCotisation)->addDay();
@@ -149,26 +147,21 @@ class Tontine extends Model
             case 'MENSUELLE':
                 return Carbon::parse($prochaineCotisation)->addMonth();
             default:
-                return null; // Aucune fréquence définie
+                return null;
         }
     }
 
-    // Dans le modèle Tontine
-
     public function canCotiser()
     {
-        // Récupérer la dernière cotisation de l'utilisateur
         $dernierPaiement = $this->cotisations()
             ->where('id_user', Auth::id())
             ->latest('date_cotisation')
             ->first();
 
-        // Si aucun paiement n'a été effectué, vérifier si la date de début permet la cotisation
         if (!$dernierPaiement) {
             return Carbon::now()->greaterThanOrEqualTo($this->date_debut);
         }
 
-        // Sinon, vérifier la date de la prochaine cotisation en fonction de la fréquence
         switch ($this->frequence) {
             case 'JOURNALIERE':
                 return Carbon::parse($dernierPaiement->date_cotisation)->addDay()->lessThanOrEqualTo(Carbon::now());
@@ -177,7 +170,7 @@ class Tontine extends Model
             case 'MENSUELLE':
                 return Carbon::parse($dernierPaiement->date_cotisation)->addMonth()->lessThanOrEqualTo(Carbon::now());
             default:
-                return false; // Fréquence invalide ou non définie
+                return false;
         }
     }
 
@@ -191,100 +184,51 @@ class Tontine extends Model
         })->get();
     }
 
-    public function gerants()
-{
-    return $this->belongsToMany(User::class, 'gerants_tontines', 'id_tontine', 'id_user');
-}
-
     /**
-     * Vérifie si l'utilisateur connecté est gérant de cette tontine.
-     *
-     * @return bool
+     * Vérifie si l'utilisateur connecté est gérant
      */
     public function estGerant()
     {
-        $user = Auth::user();
-
-        if (!$user) {
-            return false;
-        }
-
-        return $this->gerants()->where('gerant_id', $user->id)->exists();
-    }
-
-
-    public function estTerminee()
-    {
-        $nbCotisationsEffectuees = $this->cotisations()->distinct('numero_seance')->count('numero_seance');
-        return $nbCotisationsEffectuees >= $this->nbre_cotisation;
+        return $this->gerants()->where('id_user', Auth::id())->exists();
     }
 
     /**
-     * Vérifie si la tontine est active (en cours)
-     *
-     * @return bool
+     * Accesseurs pour la progression et le statut
      */
-    public function estActive()
+    public function getSeancesEffectueesAttribute()
+    {
+        return $this->cotisations()->distinct('numero_seance')->count('numero_seance');
+    }
+
+    public function getSeancesTotalesAttribute()
+    {
+        return $this->nbre_cotisation;
+    }
+
+    public function getProgressionAttribute()
+    {
+        if ($this->seances_totales == 0) {
+            return 0;
+        }
+        return ($this->seances_effectuees / $this->seances_totales) * 100;
+    }
+
+    public function getEstActiveAttribute()
     {
         $now = Carbon::now();
         $dateDebut = Carbon::parse($this->date_debut);
         $dateFin = Carbon::parse($this->date_fin);
         
-        // La tontine est active si:
-        // 1. La date actuelle est après la date de début
-        // 2. La date actuelle est avant la date de fin
-        // 3. Le nombre de tirages effectués est inférieur au nombre de cotisations prévues
         return $now->greaterThanOrEqualTo($dateDebut) && 
-            $now->lessThanOrEqualTo($dateFin) && 
-            !$this->estTerminee();
+               $now->lessThanOrEqualTo($dateFin) && 
+               $this->seances_effectuees < $this->seances_totales;
     }
 
-    /**
-     * Calcule le pourcentage de progression de la tontine
-     *
-     * @return float
-    */
-    public function progression()
+    public function getParticipantsCountAttribute()
     {
-        if ($this->nbre_cotisation == 0) {
-            return 0;
-        }
-
-        $cotisationsEffectuees = $this->cotisations()
-            ->distinct('numero_seance')
-            ->count('numero_seance');
-
-        return ($cotisationsEffectuees / $this->nbre_cotisation) * 100;
+        return min(
+            $this->cotisations()->distinct('id_user')->count('id_user'),
+            $this->nbre_participant
+        );
     }
-    
-
-public function getEstActiveAttribute()
-{
-    return now()->between($this->date_debut, $this->date_fin) && $this->progression < 100;
-}
-
-
-public function getProgressionAttribute()
-{
-    $nombreParticipants = $this->participants()->count();
-    $totalCotisations = $this->cotisations()->count();
-
-    if ($nombreParticipants === 0) {
-        return 0;
-    }
-
-    // Nombre de séances = nombre de gagnants
-    $nombreSeances = $this->tirages()->count();
-
-    // Total cotisations attendues = participants * séances
-    $totalAttendu = $nombreParticipants * $nombreSeances;
-
-    if ($totalAttendu === 0) {
-        return 0;
-    }
-
-    return round(($totalCotisations / $totalAttendu) * 100);
-}
-
-
 }
