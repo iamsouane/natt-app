@@ -1,460 +1,361 @@
 @extends('layouts.app')
 
-@section('title', 'Mon Historique - NATT-APP')
+@section('title', 'Historique des Cotisations - NATT-APP')
 
 @section('content')
 <div class="container-fluid py-4">
-    <!-- Header avec image de fond -->
-    <div class="history-header bg-gradient-primary rounded-lg shadow mb-5" data-aos="fade-down">
-        <div class="container py-5 text-center text-white">
-            <div class="icon-circle bg-white text-primary mx-auto mb-4">
-                <i class="fas fa-history fa-2x"></i>
-            </div>
-            <h1 class="h2 mb-2 font-weight-bold">Mon Historique Complet</h1>
-            <p class="mb-0">Retracez toutes vos activités dans les tontines</p>
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-history text-primary mr-2"></i>Historique des Cotisations
+        </h1>
+        <div class="d-flex">
+            <a href="{{ route('participant.cotisations.index') }}" class="btn btn-sm btn-secondary shadow-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50 mr-1"></i> Retour
+            </a>
         </div>
     </div>
 
-    <!-- Cartes statistiques animées -->
-    <div class="row mb-5" data-aos="fade-up">
-        <div class="col-md-4 mb-4">
-            <div class="card stat-card h-100 hover-scale" data-stat="tontines">
-                <div class="card-body text-center py-4">
-                    <div class="stat-icon bg-primary-light mb-3">
-                        <i class="fas fa-handshake text-primary"></i>
-                    </div>
-                    <h3 class="font-weight-bold mb-1 counter" data-target="{{ $tontines->count() }}">0</h3>
-                    <p class="text-muted mb-0">Tontines Actives</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-4">
-            <div class="card stat-card h-100 hover-scale" data-stat="cotisations">
-                <div class="card-body text-center py-4">
-                    <div class="stat-icon bg-success-light mb-3">
-                        <i class="fas fa-coins text-success"></i>
-                    </div>
-                    <h3 class="font-weight-bold mb-1">
-                        <span class="counter" data-target="{{ $cotisations->sum('montant') }}">0</span> FCFA
-                    </h3>
-                    <p class="text-muted mb-0">Total Cotisé</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-4">
-            <div class="card stat-card h-100 hover-scale" data-stat="tirages">
-                <div class="card-body text-center py-4">
-                    <div class="stat-icon bg-warning-light mb-3">
-                        <i class="fas fa-trophy text-warning"></i>
-                    </div>
-                    <h3 class="font-weight-bold mb-1 counter" data-target="{{ $tirages->count() }}">0</h3>
-                    <p class="text-muted mb-0">Tirages Gagnés</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Section Tontines avec onglets -->
-    <div class="card shadow-lg mb-5 border-0" data-aos="fade-up">
-        <div class="card-header bg-white py-3 border-bottom-0">
-            <ul class="nav nav-tabs card-header-tabs" id="historyTabs" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active" id="tontines-tab" data-toggle="tab" href="#tontines" role="tab">
-                        <i class="fas fa-handshake mr-2"></i>Mes Tontines
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="cotisations-tab" data-toggle="tab" href="#cotisations" role="tab">
-                        <i class="fas fa-coins mr-2"></i>Cotisations
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="tirages-tab" data-toggle="tab" href="#tirages" role="tab">
-                        <i class="fas fa-trophy mr-2"></i>Tirages
-                    </a>
-                </li>
-            </ul>
-        </div>
+    <!-- Calcul des totaux -->
+    @php
+        // Total des montants partiels
+        $totalPartiel = 0;
+        // Nombre de tirages gagnés (en utilisant la relation avec le modèle Tirage)
+        $tiragesGagnes = Auth::user()->tirages->count();
         
-        <div class="card-body p-0">
-            <div class="tab-content" id="historyTabsContent">
-                <!-- Onglet Tontines -->
-                <div class="tab-pane fade show active" id="tontines" role="tabpanel">
-                    @if($tontines->count())
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th>Tontine</th>
-                                        <th class="text-center">Progression</th>
-                                        <th class="text-center">Montant</th>
-                                        <th class="text-center">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($tontines as $tontine)
-                                        @php
-                                            $userCotisations = $tontine->cotisations()->where('id_user', auth()->id())->count();
-                                            $totalCotisations = $tontine->nbre_cotisation;
-                                            $progressPercent = $totalCotisations > 0 ? round(($userCotisations/$totalCotisations)*100) : 0;
-                                        @endphp
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    @if($tontine->images->isNotEmpty())
-                                                        <img src="{{ asset('storage/tontines/' . $tontine->images->first()->nom_image) }}" 
-                                                             class="rounded-circle mr-3 shadow-sm" 
-                                                             width="48" 
-                                                             height="48" 
-                                                             alt="{{ $tontine->libelle }}">
-                                                    @endif
-                                                    <div>
-                                                        <h6 class="font-weight-bold mb-0">{{ $tontine->libelle }}</h6>
-                                                        <small class="text-muted">{{ $tontine->frequence }}</small>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle">
-                                                <div class="progress-wrapper">
-                                                    <div class="progress-info">
-                                                        <span class="progress-percentage">{{ $progressPercent }}%</span>
-                                                        <span>{{ $userCotisations }}/{{ $totalCotisations }} séances</span>
-                                                    </div>
-                                                    <div class="progress" style="height: 8px;">
-                                                        <div class="progress-bar bg-{{ $progressPercent >= 100 ? 'success' : 'primary' }}" 
-                                                             role="progressbar" 
-                                                             style="width: {{ $progressPercent }}%">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="align-middle text-center">
-                                                <span class="font-weight-bold text-dark">
-                                                    {{ number_format($tontine->montant_de_base, 0, ',', ' ') }} FCFA
-                                                </span>
-                                            </td>
-                                            <td class="align-middle text-center">
-                                                <a href="{{ route('participant.cotisations.index', ['tontine' => $tontine->id]) }}" 
-                                                   class="btn btn-sm btn-outline-primary rounded-pill px-3"
-                                                   data-toggle="tooltip" 
-                                                   title="Voir les cotisations">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @else
-                        <div class="empty-state">
-                            <img src="{{ asset('img/no-data.svg') }}" alt="Aucune tontine" class="img-fluid mb-4">
-                            <h4>Vous ne participez à aucune tontine</h4>
-                            <p class="text-muted">Rejoignez une tontine pour commencer votre expérience</p>
-                            <a href="{{ route('participant.index') }}" class="btn btn-primary px-4">
-                                <i class="fas fa-handshake mr-2"></i> Explorer les tontines
-                            </a>
-                        </div>
-                    @endif
-                </div>
+        foreach($cotisations as $cotisation) {
+            $totalPartiel += $montantsPartiels[$cotisation->id_tontine] ?? 0;
+        }
+    @endphp
 
-                <!-- Onglet Cotisations -->
-                <div class="tab-pane fade" id="cotisations" role="tabpanel">
-                    @if($cotisations->count())
-                        <div class="timeline-vertical">
-                            @foreach($cotisations as $cotisation)
-                                <div class="timeline-item">
-                                    <div class="timeline-badge bg-success">
-                                        <i class="fas fa-coins"></i>
-                                    </div>
-                                    <div class="timeline-content shadow-sm">
-                                        <div class="d-flex justify-content-between">
-                                            <h5 class="font-weight-bold mb-1">
-                                                {{ number_format($cotisation->montant, 0, ',', ' ') }} FCFA
-                                            </h5>
-                                            <small class="text-muted">{{ $cotisation->created_at->format('d/m/Y H:i') }}</small>
-                                        </div>
-                                        <p class="mb-2">
-                                            <span class="badge badge-light border mr-2">
-                                                {{ $cotisation->tontine->libelle }}
-                                            </span>
-                                            <span class="badge badge-info">
-                                                {{ $cotisation->moyen_paiement }}
-                                            </span>
-                                        </p>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="badge badge-{{ $cotisation->est_valide ? 'success' : 'warning' }}">
-                                                {{ $cotisation->est_valide ? 'Validée' : 'En attente' }}
-                                            </span>
-                                            <small class="text-muted">Séance #{{ $cotisation->numero_seance }}</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                        
-                        @if($cotisations->count() > 5)
-                            <div class="text-center mt-4 mb-2">
-                                <a href="{{ route('participant.cotisations.index') }}" class="btn btn-outline-primary">
-                                    Voir toutes les cotisations ({{ $cotisations->count() }})
-                                </a>
+    <!-- Summary Cards with Hover Effects -->
+    <div class="row mb-4">
+        <!-- Carte Tontines Actives -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card border-left-primary shadow-sm h-100 py-2 hover-scale">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Tontines Actives</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ $tontinesParticipees }}
                             </div>
-                        @endif
-                    @else
-                        <div class="empty-state">
-                            <img src="{{ asset('img/no-payment.svg') }}" alt="Aucune cotisation" class="img-fluid mb-4">
-                            <h4>Aucune cotisation enregistrée</h4>
-                            <p class="text-muted">Vous n'avez pas encore effectué de cotisation</p>
                         </div>
-                    @endif
-                </div>
-
-                <!-- Onglet Tirages -->
-                <div class="tab-pane fade" id="tirages" role="tabpanel">
-                    @if($tirages->count())
-                        <div class="row">
-                            @foreach($tirages as $tirage)
-                                <div class="col-lg-6 mb-4">
-                                    <div class="card won-card border-left-warning shadow-sm h-100">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <div class="mr-3 text-warning">
-                                                    <i class="fas fa-award fa-3x"></i>
-                                                </div>
-                                                <div>
-                                                    <h5 class="font-weight-bold mb-1">{{ $tirage->tontine->libelle }}</h5>
-                                                    <p class="mb-2">
-                                                        <span class="text-warning font-weight-bold">
-                                                            {{ number_format($tirage->montant, 0, ',', ' ') }} FCFA gagnés
-                                                        </span>
-                                                    </p>
-                                                    <div class="d-flex flex-wrap">
-                                                        <span class="badge badge-light border mr-2 mb-1">
-                                                            <i class="fas fa-calendar-alt mr-1"></i> 
-                                                            {{ $tirage->created_at->format('d/m/Y') }}
-                                                        </span>
-                                                        <span class="badge badge-light border mb-1">
-                                                            <i class="fas fa-clock mr-1"></i> 
-                                                            Séance #{{ $tirage->numero_seance }}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
+                        <div class="col-auto">
+                            <i class="fas fa-handshake fa-2x text-gray-300"></i>
                         </div>
-                    @else
-                        <div class="empty-state">
-                            <img src="{{ asset('img/no-win.svg') }}" alt="Aucun tirage" class="img-fluid mb-4">
-                            <h4>Aucun tirage gagné</h4>
-                            <p class="text-muted">Vous n'avez pas encore remporté de tirage</p>
-                        </div>
-                    @endif
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Carte Total Cotisé -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card border-left-success shadow-sm h-100 py-2 hover-scale">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Cotisé</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ number_format($totalPartiel, 0, ',', ' ') }} FCFA
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-coins fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte Nombre de Cotisations -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card border-left-info shadow-sm h-100 py-2 hover-scale">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Cotisations</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ $cotisations->count() }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-list-ul fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte Tirages Gagnés -->
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card border-left-warning shadow-sm h-100 py-2 hover-scale">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Tirages Gagnés</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ $tiragesGagnes }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-trophy fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cotisations Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 border-bottom">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-primary font-weight-bold">
+                    <i class="fas fa-receipt mr-2"></i>Détail des Cotisations
+                </h5>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                            id="filterDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-filter mr-1"></i>Filtrer
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="filterDropdown">
+                        <a class="dropdown-item" href="#">Toutes</a>
+                        <a class="dropdown-item" href="#">Ce mois</a>
+                        <a class="dropdown-item" href="#">Cette année</a>
+                        <div class="dropdown-divider"></div>
+                        @foreach($cotisations->pluck('tontine')->unique('id') as $tontine)
+                            <a class="dropdown-item" href="#">{{ $tontine->libelle }}</a>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="pl-4">Tontine</th>
+                            <th class="text-center">Séance</th>
+                            <th class="text-center">Montant</th>
+                            <th class="text-center">Date</th>
+                            <th class="text-center">Statut</th>
+                            <th class="text-center">Résultat Tirage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($cotisations as $cotisation)
+                            @php
+                                // Vérifie si cette cotisation est associée à un tirage gagné
+                                $estGagnant = Auth::user()->tirages()
+                                    ->where('id_tontine', $cotisation->id_tontine)
+                                    ->where('numero_seance', $cotisation->numero_seance)
+                                    ->exists();
+                            @endphp
+                            <tr>
+                                <td class="pl-4">
+                                    <div class="d-flex align-items-center">
+                                        @if($cotisation->tontine->images->isNotEmpty())
+                                            <img src="{{ asset('storage/tontines/' . $cotisation->tontine->images->first()->nom_image) }}" 
+                                                 class="rounded-circle mr-3" 
+                                                 width="40" 
+                                                 height="40" 
+                                                 alt="{{ $cotisation->tontine->libelle }}"
+                                                 style="object-fit: cover;">
+                                        @else
+                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mr-3" 
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="fas fa-handshake text-muted"></i>
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <h6 class="mb-0 font-weight-bold">{{ $cotisation->tontine->libelle ?? 'N/A' }}</h6>
+                                            <small class="text-muted">{{ $cotisation->tontine->frequence ?? '' }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="badge badge-pill badge-primary px-3">
+                                        #{{ $cotisation->numero_seance }}
+                                    </span>
+                                </td>
+                                <td class="text-center align-middle font-weight-bold text-success">
+                                    {{ number_format($montantsPartiels[$cotisation->id_tontine] ?? 0, 0, ',', ' ') }} FCFA
+                                </td>
+                                <td class="text-center align-middle">
+                                    <div>{{ \Carbon\Carbon::parse($cotisation->date_cotisation)->format('d/m/Y') }}</div>
+                                    <small class="text-muted">
+                                        {{ \Carbon\Carbon::parse($cotisation->date_cotisation)->diffForHumans() }}
+                                    </small>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="badge badge-pill badge-success px-3">Validée</span>
+                                </td>
+                                <td class="text-center align-middle">
+                                    @if($estGagnant)
+                                        <span class="badge badge-pill badge-warning px-3">
+                                            <i class="fas fa-trophy mr-1"></i> Gagnant
+                                        </span>
+                                    @else
+                                        <span class="badge badge-pill badge-secondary px-3">-</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6">
+                                    <div class="text-center py-5">
+                                        <img src="{{ asset('img/no-data.svg') }}" alt="Aucune donnée" class="img-fluid mb-4" style="max-width: 200px;">
+                                        <h5 class="text-gray-800">Aucune cotisation enregistrée</h5>
+                                        <p class="text-muted">Vous n'avez effectué aucune cotisation pour le moment.</p>
+                                        <a href="{{ route('participant.cotisations.index') }}" class="btn btn-primary px-4">
+                                            <i class="fas fa-wallet mr-2"></i> Effectuer une cotisation
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @if($cotisations->count() > 0)
+            <div class="card-footer bg-white border-top-0">
+                <div class="text-muted small">
+                    Affichage de <strong>{{ $cotisations->count() }}</strong> cotisations
+                </div>
+            </div>
+        @endif
     </div>
 </div>
 @endsection
 
 @section('styles')
 <style>
-    /* Header Styles */
-    .history-header {
-        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-        overflow: hidden;
-        position: relative;
-    }
-    
-    .history-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239C92AC' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
-    }
-
-    /* Stat Cards */
-    .stat-card {
-        transition: all 0.3s ease;
-        border: none;
+    /* Card Styling */
+    .card {
         border-radius: 0.5rem;
         overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
     }
     
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    /* Hover Effects */
+    .hover-scale {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     
     .hover-scale:hover {
-        transform: scale(1.03);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
     }
     
-    .stat-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto;
-        font-size: 1.5rem;
+    /* Border Colors */
+    .border-left-primary {
+        border-left: 4px solid #4e73df !important;
+    }
+    .border-left-success {
+        border-left: 4px solid #1cc88a !important;
+    }
+    .border-left-info {
+        border-left: 4px solid #36b9cc !important;
+    }
+    .border-left-warning {
+        border-left: 4px solid #f6c23e !important;
     }
     
-    .bg-primary-light {
-        background-color: rgba(78, 115, 223, 0.1);
+    /* Table Styling */
+    .table {
+        margin-bottom: 0;
     }
     
-    .bg-success-light {
-        background-color: rgba(28, 200, 138, 0.1);
-    }
-    
-    .bg-warning-light {
-        background-color: rgba(246, 194, 62, 0.1);
-    }
-
-    /* Tabs */
-    .nav-tabs .nav-link {
-        border: none;
-        color: #6e707e;
-        font-weight: 600;
-        padding: 1rem 1.5rem;
-    }
-    
-    .nav-tabs .nav-link.active {
+    .table thead th {
+        border-top: 0;
+        border-bottom: 1px solid #e3e6f0;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
         color: #4e73df;
-        background: transparent;
-        border-bottom: 3px solid #4e73df;
-    }
-
-    /* Timeline */
-    .timeline-vertical {
-        position: relative;
-        padding-left: 50px;
-        margin: 0 20px;
+        vertical-align: middle;
     }
     
-    .timeline-vertical::before {
-        content: '';
-        position: absolute;
-        left: 25px;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: #e3e6f0;
+    .table tbody tr {
+        transition: all 0.2s ease;
     }
     
-    .timeline-item {
-        position: relative;
-        margin-bottom: 20px;
+    .table tbody tr:hover {
+        background-color: rgba(78, 115, 223, 0.03);
     }
     
-    .timeline-badge {
-        position: absolute;
-        left: -50px;
-        top: 0;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    /* Badge Styling */
+    .badge-pill {
+        border-radius: 10rem;
     }
     
-    .timeline-content {
-        background: #fff;
-        padding: 1.25rem;
-        border-radius: 0.35rem;
-        border: 1px solid #e3e6f0;
-    }
-
-    /* Progress Bar */
-    .progress-wrapper {
-        margin-bottom: 0.5rem;
-    }
-    
-    .progress-info {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 0.25rem;
-    }
-    
-    .progress-percentage {
-        font-weight: 600;
-        color: #4e73df;
-    }
-
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 3rem 1rem;
-    }
-    
-    .empty-state img {
-        max-width: 200px;
-        margin-bottom: 1.5rem;
-    }
-
-    /* Won Card */
-    .won-card {
-        transition: all 0.3s ease;
-    }
-    
-    .won-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .table-responsive {
+            border: 0;
+        }
+        
+        .table thead {
+            display: none;
+        }
+        
+        .table tbody tr {
+            display: block;
+            margin-bottom: 1rem;
+            border: 1px solid #e3e6f0;
+            border-radius: 0.35rem;
+        }
+        
+        .table tbody td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        
+        .table tbody td::before {
+            content: attr(data-label);
+            font-weight: bold;
+            margin-right: 1rem;
+            color: #4e73df;
+        }
+        
+        .table tbody td:last-child {
+            border-bottom: 0;
+        }
     }
 </style>
 @endsection
 
 @section('scripts')
 <script>
-    // Animation des compteurs
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialiser AOS
-        AOS.init({
-            duration: 800,
-            easing: 'ease-in-out',
-            once: true
-        });
-
-        // Animer les compteurs
-        const counters = document.querySelectorAll('.counter');
-        const speed = 200;
-        
-        counters.forEach(counter => {
-            const target = +counter.getAttribute('data-target');
-            const count = +counter.innerText;
-            const increment = target / speed;
-            
-            if (count < target) {
-                const updateCount = () => {
-                    const newCount = Math.ceil(count + increment);
-                    counter.innerText = newCount.toLocaleString();
-                    
-                    if (newCount < target) {
-                        setTimeout(updateCount, 1);
-                    } else {
-                        counter.innerText = target.toLocaleString();
-                    }
-                };
-                updateCount();
-            } else {
-                counter.innerText = target.toLocaleString();
-            }
-        });
-
-        // Tooltips
+    // Initialize tooltips
+    $(function () {
         $('[data-toggle="tooltip"]').tooltip();
+    });
+
+    // Add data-label attributes for responsive tables
+    document.addEventListener('DOMContentLoaded', function() {
+        const headers = document.querySelectorAll('.table thead th');
+        const rows = document.querySelectorAll('.table tbody tr');
+        
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            cells.forEach((cell, index) => {
+                if (headers[index]) {
+                    cell.setAttribute('data-label', headers[index].textContent.trim());
+                }
+            });
+        });
     });
 </script>
 @endsection
