@@ -57,11 +57,11 @@
     <div class="row justify-content-center">
         @php
             $membres = [
-                ['nom' => 'Alice Dupont', 'role' => 'Backend Developer', 'image' => 'img/sis.jpg', 'social' => ['github' => '#', 'linkedin' => '#']],
-                ['nom' => 'Jean Martin', 'role' => 'Frontend Developer', 'image' => 'img/sis.jpg', 'social' => ['github' => '#', 'linkedin' => '#']],
-                ['nom' => 'Sophie Lambert', 'role' => 'UI/UX Designer', 'image' => 'img/hrs.jpg', 'social' => ['github' => '#', 'linkedin' => '#']],
-                ['nom' => 'Thomas Leroy', 'role' => 'Project Manager', 'image' => 'img/hrs.jpg', 'social' => ['github' => '#', 'linkedin' => '#']],
-                ['nom' => 'Emma Bernard', 'role' => 'Quality Assurance', 'image' => 'img/sis.jpg', 'social' => ['github' => '#', 'linkedin' => '#']],
+                ['nom' => 'S. Ismaila SOUANE', 'role' => 'Fullstack Developer', 'image' => 'img/sis.jpeg', 'social' => ['github' => '#', 'linkedin' => '#']],
+                ['nom' => 'Hadia Rougui SOW', 'role' => 'Frontend Developer', 'image' => 'img/hrs.jpeg', 'social' => ['github' => '#', 'linkedin' => '#']],
+                ['nom' => 'Fatou GUEYE', 'role' => 'Project Manager', 'image' => 'img/fg.jpeg', 'social' => ['github' => '#', 'linkedin' => '#']],
+                ['nom' => 'Adama NDAO', 'role' => 'Project Manager', 'image' => 'img/admin.jpeg', 'social' => ['github' => '#', 'linkedin' => '#']],
+                ['nom' => 'Fatou THIAM', 'role' => 'Project Manager', 'image' => 'img/ft.jpeg', 'social' => ['github' => '#', 'linkedin' => '#']],
             ];
         @endphp
 
